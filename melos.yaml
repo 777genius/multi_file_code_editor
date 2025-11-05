@@ -1,0 +1,52 @@
+name: multi_file_code_editor
+repository: https://github.com/yourorg/multi_file_code_editor
+
+packages:
+  - modules/**
+
+command:
+  bootstrap:
+    runPubGetInParallel: true
+    runPubGetOffline: false
+
+  version:
+    branch: main
+    message: "chore(release): publish packages"
+
+  publish:
+    dry-run: true
+
+scripts:
+  analyze:
+    run: flutter analyze
+    description: Run Dart static analysis for all packages
+    exec:
+      concurrency: 1
+
+  format:
+    run: dart format . --set-exit-if-changed
+    description: Format all packages
+
+  test:
+    run: flutter test --coverage
+    description: Run all tests with coverage
+    exec:
+      concurrency: 1
+
+  clean:
+    run: flutter clean
+    description: Clean all packages
+    exec:
+      concurrency: 1
+
+  get:
+    run: flutter pub get
+    description: Get dependencies for all packages
+    exec:
+      concurrency: 1
+
+  build_runner:
+    run: flutter pub run build_runner build --delete-conflicting-outputs
+    description: Run build_runner for all packages
+    exec:
+      concurrency: 1

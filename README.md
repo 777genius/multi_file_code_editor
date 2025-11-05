@@ -1,5 +1,7 @@
 # Multi-File Code Editor
 
+[![CodeFactor](https://img.shields.io/codefactor/grade/github/777genius/multi_file_code_editor?style=flat-square)](https://www.codefactor.io/repository/github/777genius/multi_file_code_editor)
+
 A production-ready, extensible, multi-file code editor package for Flutter.
 
 ![Multi-File Code Editor](image.png)

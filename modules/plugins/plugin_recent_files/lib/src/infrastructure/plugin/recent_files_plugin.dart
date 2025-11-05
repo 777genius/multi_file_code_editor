@@ -1,6 +1,7 @@
 import 'package:editor_core/editor_core.dart';
 import 'package:editor_plugins/editor_plugins.dart';
 import 'package:plugin_base/plugin_base.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../domain/entities/recent_files_list.dart';
 import '../../domain/value_objects/recent_file_entry.dart';
@@ -31,6 +32,7 @@ class RecentFilesPlugin extends BaseEditorPlugin with StatefulPlugin {
   @override
   void onFileOpen(FileDocument file) {
     safeExecute('Add to recent files', () {
+      debugPrint('[RecentFiles] File opened: ${file.name}');
       final entry = RecentFileEntry.create(
         fileId: file.id,
         fileName: file.name,
@@ -39,6 +41,7 @@ class RecentFilesPlugin extends BaseEditorPlugin with StatefulPlugin {
 
       _recentFiles = _recentFiles.addFile(entry);
       setState('recentFiles', _recentFiles);
+      debugPrint('[RecentFiles] Total files: ${_recentFiles.count}');
     });
   }
 
@@ -52,12 +55,17 @@ class RecentFilesPlugin extends BaseEditorPlugin with StatefulPlugin {
 
   @override
   Widget? buildSidebarPanel(BuildContext context) {
-    return RecentFilesPanel(
-      recentFiles: _recentFiles,
-      onFileSelected: (entry) {
-        context
-            .findAncestorStateOfType<NavigatorState>()
-            ?.pop();
+    return ValueListenableBuilder<int>(
+      valueListenable: stateChanges,
+      builder: (context, _, __) {
+        return RecentFilesPanel(
+          recentFiles: _recentFiles,
+          onFileSelected: (entry) {
+            context
+                .findAncestorStateOfType<NavigatorState>()
+                ?.pop();
+          },
+        );
       },
     );
   }

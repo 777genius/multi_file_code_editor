@@ -385,24 +385,47 @@ class FileTreeView extends StatelessWidget {
       return widget;
     }
 
-    return Draggable<String>(
-      data: data.id,
-      feedback: Material(
-        elevation: 4,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          color: Theme.of(context).colorScheme.surface,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(_getFileIcon(data.language), size: 18),
-              const SizedBox(width: 8),
-              Text(data.name),
-            ],
+    return DragTarget<String>(
+      onAcceptWithDetails: (details) {
+        final draggedFileId = details.data;
+
+        if (draggedFileId == data.id) return;
+
+        if (data.parentId == null) return;
+
+        controller.moveFile(draggedFileId, data.parentId!);
+      },
+      builder: (context, candidateData, rejectedData) {
+        final isHovered = candidateData.isNotEmpty;
+
+        return Draggable<String>(
+          data: data.id,
+          feedback: Material(
+            elevation: 4,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              color: Theme.of(context).colorScheme.surface,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_getFileIcon(data.language), size: 18),
+                  const SizedBox(width: 8),
+                  Text(data.name),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-      child: widget,
+          child: Container(
+            color:
+                isHovered
+                    ? Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.2)
+                    : null,
+            child: widget,
+          ),
+        );
+      },
     );
   }
 

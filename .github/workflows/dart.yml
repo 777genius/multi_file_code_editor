@@ -31,10 +31,10 @@ jobs:
         run: melos bootstrap
 
       - name: Analyze all packages
-        run: melos run analyze
+        run: melos exec -- flutter analyze
 
       - name: Format check
-        run: melos run format
+        run: melos exec -- dart format . --set-exit-if-changed
 
       - name: Run tests
-        run: melos run test
+        run: melos exec -- flutter test --no-pub

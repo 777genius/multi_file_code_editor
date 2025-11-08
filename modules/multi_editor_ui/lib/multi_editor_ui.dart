@@ -1,3 +1,28 @@
+/// UI components for Multi-File Code Editor including Monaco Editor integration.
+///
+/// This package provides ready-to-use Flutter widgets for building code editing
+/// experiences with file trees, editor scaffolds, and plugin UI integration.
+///
+/// ## Features
+///
+/// * **Monaco Editor Widget**: Cross-platform code editor with syntax highlighting
+/// * **File Tree View**: Hierarchical file browser with drag-and-drop
+/// * **Editor Scaffold**: Complete editor layout with header and panels
+/// * **Theme Support**: Dark/light themes with dynamic switching
+/// * **Plugin UI**: Integration points for plugin-contributed UI
+///
+/// ## Example
+///
+/// ```dart
+/// import 'package:multi_editor_ui/multi_editor_ui.dart';
+///
+/// EditorScaffold(
+///   fileTree: FileTreeView(controller: fileTreeController),
+///   editor: MonacoCodeEditor(controller: editorController),
+/// )
+/// ```
+library;
+
 export 'src/state/editor_state.dart';
 export 'src/state/file_tree_state.dart';
 

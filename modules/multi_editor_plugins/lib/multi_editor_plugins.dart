@@ -1,3 +1,29 @@
+/// Plugin system for Multi-File Code Editor with lifecycle management and event-driven architecture.
+///
+/// This package provides a complete plugin infrastructure with dependency resolution,
+/// error isolation, inter-plugin messaging, and state management.
+///
+/// ## Features
+///
+/// * **Plugin Manager**: Load, initialize, and manage plugins
+/// * **Event System**: Pub/sub pattern for plugin communication
+/// * **Error Tracking**: Isolate and track plugin-specific errors
+/// * **Message Bus**: Inter-plugin messaging
+/// * **State Management**: Plugin state and configuration persistence
+/// * **Dependency Resolution**: Handle plugin dependencies
+///
+/// ## Example
+///
+/// ```dart
+/// import 'package:multi_editor_plugins/multi_editor_plugins.dart';
+///
+/// // Create and initialize plugin manager
+/// final pluginManager = PluginManager()
+///   ..registerPlugin(MyCustomPlugin())
+///   ..initializeAll();
+/// ```
+library;
+
 export 'src/plugin_api/editor_plugin.dart';
 export 'src/plugin_api/plugin_context.dart';
 export 'src/plugin_api/plugin_manifest.dart';

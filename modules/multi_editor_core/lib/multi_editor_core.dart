@@ -1,3 +1,32 @@
+/// Core domain layer for MultiEditor - a multi-file code editor.
+///
+/// This package provides the foundational entities, value objects, and interfaces
+/// for building multi-file code editing experiences following Clean Architecture
+/// and Domain-Driven Design principles.
+///
+/// ## Features
+///
+/// * **Domain Entities**: FileDocument, Folder, Project, FileTreeNode
+/// * **Value Objects**: Type-safe wrappers for file paths, names, content
+/// * **Repository Interfaces**: Abstraction for data access
+/// * **Domain Events**: File and folder lifecycle events
+/// * **Validation Services**: Input validation and language detection
+///
+/// ## Example
+///
+/// ```dart
+/// import 'package:multi_editor_core/multi_editor_core.dart';
+///
+/// // Create a file document
+/// final file = FileDocument(
+///   id: 'file_1',
+///   name: 'main.dart',
+///   content: 'void main() {}',
+///   language: 'dart',
+/// );
+/// ```
+library;
+
 export 'src/domain/entities/file_document.dart';
 export 'src/domain/entities/folder.dart';
 export 'src/domain/entities/project.dart';

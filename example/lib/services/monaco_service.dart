@@ -18,17 +18,8 @@ class MonacoService implements EditorService {
     _controller = controller;
   }
 
-  /// Register snippets with Monaco if available
-  @override
-  Future<void> registerSnippets(
-    String languageId,
-    List<dynamic> snippets,
-  ) async {
-    if (_controller == null) {
-      throw StateError('MonacoController not available');
-    }
-    await _controller!.registerSnippets(languageId, snippets);
-  }
+  // Note: registerSnippets method removed in flutter_monaco_crossplatform v1.0.1
+  // Snippets are now registered differently through Monaco's completion API
 
   @override
   void dispose() {

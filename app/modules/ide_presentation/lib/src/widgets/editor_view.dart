@@ -200,8 +200,9 @@ class _EditorViewState extends State<EditorView> {
                 contentPadding: EdgeInsets.all(16),
               ),
               onChanged: (text) {
-                // Trigger action on store
-                _store.insertText(text);
+                // Update store content directly (TextField is source of truth for UI)
+                // Don't call insertText as it would insert entire text at cursor position
+                _store.updateContentFromUI(text);
               },
             ),
           ),

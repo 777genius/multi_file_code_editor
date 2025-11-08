@@ -318,6 +318,21 @@ abstract class _EditorStore with Store {
     errorFailure = null;
   }
 
+  /// Updates content from UI (TextField changes)
+  ///
+  /// This is called when user types in TextField.
+  /// Unlike insertText(), this doesn't call repository - it just updates
+  /// the observable content to reflect UI state.
+  @action
+  void updateContentFromUI(String newContent) {
+    if (content != newContent) {
+      content = newContent;
+      hasUnsavedChanges = true;
+      errorMessage = null;
+      errorFailure = null;
+    }
+  }
+
   /// Clears error state
   @action
   void clearError() {

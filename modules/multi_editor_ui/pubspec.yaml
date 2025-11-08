@@ -24,7 +24,7 @@ dependencies:
   multi_editor_plugins: ^0.1.0
 
   # Code editor with cross-platform support (Web, Linux, macOS, Windows)
-  flutter_monaco_crossplatform: ^1.0.0
+  flutter_monaco_crossplatform: ^1.0.1
 
   # File tree
   animated_tree_view: ^2.3.0

@@ -40,7 +40,7 @@ dependencies:
   multi_editor_ui: ^0.1.0
 
   # flutter_monaco_crossplatform - cross-platform Monaco Editor support
-  flutter_monaco_crossplatform: ^1.0.0
+  flutter_monaco_crossplatform: ^1.0.1
 
   # Plugins - workspace автоматически использует локальные версии
   multi_editor_plugin_base: ^0.1.0

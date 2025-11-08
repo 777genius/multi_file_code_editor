@@ -67,3 +67,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Rust related
+**/target/
+**/Cargo.lock

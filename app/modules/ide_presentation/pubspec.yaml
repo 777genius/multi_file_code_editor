@@ -1,0 +1,46 @@
+name: ide_presentation
+description: IDE Presentation Layer - UI widgets, MobX Stores, and screens
+version: 0.2.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  # Domain and Application layers
+  editor_core:
+    path: ../editor_core
+  lsp_domain:
+    path: ../lsp_domain
+  lsp_application:
+    path: ../lsp_application
+
+  # Flutter
+  flutter:
+    sdk: flutter
+
+  # State Management - MobX (reactive, observable) + Provider
+  mobx: ^2.4.0
+  flutter_mobx: ^2.2.1+1
+  provider: ^6.1.2
+
+  # Utilities
+  dartz: ^0.10.1
+  freezed_annotation: ^2.4.4
+  injectable: ^2.6.2
+  get_it: ^8.0.2
+  path: ^1.9.0
+  file_picker: ^8.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generation
+  build_runner: ^2.4.13
+  mobx_codegen: ^2.6.1
+  freezed: ^2.5.7
+  injectable_generator: ^2.6.2
+
+  # Testing
+  mocktail: ^1.0.4

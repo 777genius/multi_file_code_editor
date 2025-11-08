@@ -3,6 +3,7 @@ repository: https://github.com/777genius/multi_editor_flutter
 
 packages:
   - modules/**
+  - app/modules/**
 
 command:
   bootstrap:

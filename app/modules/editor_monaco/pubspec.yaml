@@ -1,0 +1,28 @@
+name: editor_monaco
+description: Monaco Editor adapter - implements editor_core interfaces using Monaco
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Domain layer (abstractions)
+  editor_core:
+    path: ../editor_core
+
+  # Monaco integration
+  flutter_monaco_crossplatform: ^1.0.1
+
+  # Utilities
+  dartz: ^0.10.1
+  rxdart: ^0.28.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  test: ^1.25.8
+  mocktail: ^1.0.4

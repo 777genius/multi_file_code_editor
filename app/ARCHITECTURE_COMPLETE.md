@@ -5,11 +5,13 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         PRESENTATION LAYER                               │
-│                        (UI - Flutter Widgets)                            │
+│                     (UI - Flutter Widgets + BLoCs)                       │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  ide_ui (Module)                                                   │ │
-│  │  - EditorScreen, CompletionWidget, DiagnosticPanel               │ │
-│  │  - CodeEditorWidget (talks to editor via port)                   │ │
+│  │  ide_presentation (Module) ✅                                      │ │
+│  │  - BLoCs: EditorBloc, LspBloc (State Management)                 │ │
+│  │  - Widgets: EditorView (Code Editor with Line Numbers)            │ │
+│  │  - Screens: IdeScreen (Main IDE Layout)                           │ │
+│  │  - Dependency Injection: GetIt + Injectable                        │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬──────────────────────────────────────────┘
                                 │
@@ -17,14 +19,11 @@
 │                       APPLICATION LAYER                                  │
 │                    (Use Cases & Orchestration)                           │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  lsp_application (Module)                                          │ │
-│  │  - GetCompletionsUseCase, GetDiagnosticsUseCase                  │ │
-│  │  - LspSessionService, EditorSyncService                           │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  ide_application (Module)                                          │ │
-│  │  - ProjectManager, WorkspaceService                               │ │
-│  │  - FileSystemService, EditorOrchestrator                          │ │
+│  │  lsp_application (Module) ✅                                       │ │
+│  │  - Use Cases: GetCompletions, GetHoverInfo, GetDiagnostics       │ │
+│  │               GoToDefinition, FindReferences, Initialize/Shutdown │ │
+│  │  - Services: LspSessionService, EditorSyncService (with debounce) │ │
+│  │             DiagnosticService                                      │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬──────────────────────────────────────────┘
                                 │
@@ -47,22 +46,29 @@
 │                      INFRASTRUCTURE LAYER                                │
 │                        (Adapters - External)                             │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  editor_native (Rust Module)                  ← ADAPTER            │ │
+│  │  editor_native (Rust Module) ✅               ← ADAPTER            │ │
 │  │  - Implements ICodeEditorRepository                               │ │
 │  │  - Uses: ropey, tree-sitter, cosmic-text, wgpu                    │ │
-│  │  - Exposes: C FFI API                                             │ │
+│  │  - Exposes: C FFI API (O(log n) operations)                       │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  editor_ffi (Dart FFI Bridge)                 ← ADAPTER            │ │
-│  │  - Wraps Rust FFI in Dart                                         │ │
+│  │  editor_ffi (Dart FFI Bridge) ✅              ← ADAPTER            │ │
+│  │  - Wraps Rust FFI in Dart with NativeEditorRepository            │ │
 │  │  - Implements ICodeEditorRepository                               │ │
-│  │  - Translates domain calls → Rust FFI                             │ │
+│  │  - Translates domain calls → Rust FFI (memory-safe)               │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  lsp_infrastructure (Module)                  ← ADAPTER            │ │
-│  │  - WebSocketLspClientRepository                                   │ │
+│  │  lsp_infrastructure (Module) ✅               ← ADAPTER            │ │
+│  │  - WebSocketLspClientRepository (connects via ws://localhost:9999)│ │
+│  │  - LspProtocolMappers (JSON-RPC 2.0 ↔ Domain models)             │ │
+│  │  - RequestManager (timeout handling, response matching)           │ │
 │  │  - Implements ILspClientRepository                                │ │
-│  │  - Connects to lsp_bridge server                                  │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  lsp_bridge (Rust Server) ✅                  ← EXTERNAL SERVICE   │ │
+│  │  - WebSocket server (Tokio + Tungstenite)                         │ │
+│  │  - Manages multiple LSP server processes (Dart, TS, Python, Rust) │ │
+│  │  - Protocol translation: Flutter JSON-RPC ↔ Native LSP servers    │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬──────────────────────────────────────────┘
                                 │

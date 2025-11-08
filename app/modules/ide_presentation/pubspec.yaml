@@ -1,0 +1,39 @@
+name: ide_presentation
+description: IDE Presentation Layer - UI widgets, BLoCs, and screens
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  # Domain and Application layers
+  editor_core:
+    path: ../editor_core
+  lsp_domain:
+    path: ../lsp_domain
+  lsp_application:
+    path: ../lsp_application
+
+  # Flutter
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # Utilities
+  dartz: ^0.10.1
+  freezed_annotation: ^2.4.4
+  injectable: ^2.4.4
+  get_it: ^7.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  freezed: ^2.5.7
+  build_runner: ^2.4.13
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+  injectable_generator: ^2.6.2

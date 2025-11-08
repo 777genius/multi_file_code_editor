@@ -5,9 +5,12 @@ import 'package:lsp_infrastructure/lsp_infrastructure.dart';
 import 'package:lsp_domain/lsp_domain.dart';
 import 'package:editor_core/editor_core.dart';
 
+import 'package:editor_ffi/editor_ffi.dart';
+
 import '../stores/editor/editor_store.dart';
 import '../stores/lsp/lsp_store.dart';
-import '../infrastructure/mock_editor_repository.dart';
+import '../services/file_service.dart';
+import '../services/file_picker_service.dart';
 
 /// Dependency Injection Container
 ///
@@ -89,10 +92,19 @@ Future<void> configureDependencies() async {
   );
 
   // Editor Infrastructure
-  // Using MockEditorRepository for MVP (until Rust native editor is compiled)
-  // TODO: Replace with NativeEditorRepository when editor_native FFI is ready
+  // Using NativeEditorRepository with Rust FFI
+  // Note: Requires compiled Rust library (libeditor_native.so/.dylib/.dll)
   getIt.registerLazySingleton<ICodeEditorRepository>(
-    () => MockEditorRepository(),
+    () => NativeEditorRepository(),
+  );
+
+  // File Services
+  getIt.registerLazySingleton<FileService>(
+    () => FileService(),
+  );
+
+  getIt.registerLazySingleton<FilePickerService>(
+    () => FilePickerService(),
   );
 
   // ================================================================

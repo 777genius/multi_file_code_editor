@@ -89,9 +89,17 @@ export 'src/stores/lsp/lsp_store.dart';
 
 // Widgets
 export 'src/widgets/editor_view.dart';
+export 'src/widgets/completion_popup.dart';
+export 'src/widgets/diagnostics_panel.dart';
+export 'src/widgets/hover_info_widget.dart';
+export 'src/widgets/settings_dialog.dart';
 
 // Screens
 export 'src/screens/ide_screen.dart';
+
+// Services
+export 'src/services/file_service.dart';
+export 'src/services/file_picker_service.dart';
 
 // Dependency Injection
 export 'src/di/injection_container.dart';

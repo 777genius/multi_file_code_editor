@@ -44,6 +44,9 @@ dependencies:
   dartz: ^0.10.1
   path: ^1.9.0
 
+  # File Operations
+  file_picker: ^8.1.6
+
   # UI
   cupertino_icons: ^1.0.8
 

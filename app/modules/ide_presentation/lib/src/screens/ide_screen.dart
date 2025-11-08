@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:editor_core/editor_core.dart';
+import 'package:lsp_domain/lsp_domain.dart';
 import '../stores/editor/editor_store.dart';
 import '../stores/lsp/lsp_store.dart';
 import '../widgets/editor_view.dart';
@@ -82,9 +83,23 @@ class _IdeScreenState extends State<IdeScreen> {
   }
 
   Future<void> _initializeEditor() async {
-    // Initialize the native editor
-    final repo = GetIt.I<ICodeEditorRepository>();
-    await repo.initialize();
+    try {
+      // Initialize the native editor
+      final repo = GetIt.I<ICodeEditorRepository>();
+      await repo.initialize();
+    } catch (e) {
+      // Log error but don't crash - editor might work in degraded mode
+      debugPrint('Failed to initialize editor: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Warning: Editor initialization failed: $e'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -532,13 +547,15 @@ class _IdeScreenState extends State<IdeScreen> {
           );
         }
       },
-      (document) {
+      (document) async {
         // Open document in editor
-        setState(() {
-          _currentFilePath = filePath;
-        });
+        if (mounted) {
+          setState(() {
+            _currentFilePath = filePath;
+          });
+        }
 
-        _editorStore.openDocument(
+        await _editorStore.openDocument(
           uri: document.uri,
           language: document.languageId,
         );
@@ -602,9 +619,9 @@ class _IdeScreenState extends State<IdeScreen> {
           );
         }
       },
-      (_) {
+      (_) async {
         // Mark as saved
-        _editorStore.saveDocument();
+        await _editorStore.saveDocument();
 
         // Show success
         if (mounted) {
@@ -643,7 +660,7 @@ class _IdeScreenState extends State<IdeScreen> {
   }
 
   /// Handles clicking on a diagnostic
-  void _handleDiagnosticTap(diagnostic) {
+  void _handleDiagnosticTap(Diagnostic diagnostic) {
     // Jump to diagnostic location
     _editorStore.moveCursor(diagnostic.range.start);
   }

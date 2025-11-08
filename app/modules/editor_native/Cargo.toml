@@ -29,7 +29,7 @@ tree-sitter-go = "0.20"
 cosmic-text = "0.10"
 
 # GPU Rendering (wgpu)
-wgpu = "0.18"
+wgpu = "0.19"
 bytemuck = "1.14"
 
 # Serialization
@@ -49,9 +49,10 @@ libc = "0.2"
 [dev-dependencies]
 criterion = "0.5"  # Benchmarks
 
-[[bench]]
-name = "editor_bench"
-harness = false
+# Note: Benchmark file commented out until benches/editor_bench.rs is created
+# [[bench]]
+# name = "editor_bench"
+# harness = false
 
 [profile.release]
 opt-level = 3

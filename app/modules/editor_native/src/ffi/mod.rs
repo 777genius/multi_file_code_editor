@@ -430,3 +430,6 @@ pub unsafe extern "C" fn editor_free_string(ptr: *mut c_char) {
         drop(CString::from_raw(ptr));
     }
 }
+
+#[cfg(test)]
+mod tests;

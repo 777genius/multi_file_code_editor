@@ -196,3 +196,73 @@ fn get_lsp_command(language_id: &str) -> Result<(String, Vec<String>)> {
         _ => Err(anyhow!("Unsupported language: {}", language_id)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ============================================================
+    // Language Command Tests
+    // ============================================================
+
+    #[test]
+    fn test_get_lsp_command_dart() {
+        let result = get_lsp_command("dart");
+        assert!(result.is_ok());
+        let (cmd, args) = result.unwrap();
+        assert_eq!(cmd, "dart");
+        assert_eq!(args, vec!["language-server"]);
+    }
+
+    #[test]
+    fn test_get_lsp_command_typescript() {
+        let result = get_lsp_command("typescript");
+        assert!(result.is_ok());
+        let (cmd, args) = result.unwrap();
+        assert_eq!(cmd, "typescript-language-server");
+        assert_eq!(args, vec!["--stdio"]);
+    }
+
+    #[test]
+    fn test_get_lsp_command_javascript() {
+        let result = get_lsp_command("javascript");
+        assert!(result.is_ok());
+        let (cmd, args) = result.unwrap();
+        assert_eq!(cmd, "typescript-language-server");
+        assert_eq!(args, vec!["--stdio"]);
+    }
+
+    #[test]
+    fn test_get_lsp_command_python() {
+        let result = get_lsp_command("python");
+        assert!(result.is_ok());
+        let (cmd, args) = result.unwrap();
+        assert_eq!(cmd, "pylsp");
+        assert!(args.is_empty());
+    }
+
+    #[test]
+    fn test_get_lsp_command_rust() {
+        let result = get_lsp_command("rust");
+        assert!(result.is_ok());
+        let (cmd, args) = result.unwrap();
+        assert_eq!(cmd, "rust-analyzer");
+        assert!(args.is_empty());
+    }
+
+    #[test]
+    fn test_get_lsp_command_unsupported() {
+        let result = get_lsp_command("unknown_language");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Unsupported language"));
+    }
+
+    #[test]
+    fn test_get_lsp_command_empty_string() {
+        let result = get_lsp_command("");
+        assert!(result.is_err());
+    }
+
+    // Note: LspServerInstance tests would require mocking LSP servers
+    // which is complex. These tests verify the command selection logic.
+}

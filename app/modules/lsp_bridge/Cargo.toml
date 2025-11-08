@@ -8,6 +8,7 @@ description = "LSP Bridge server - manages language server processes and bridges
 [dependencies]
 # Async runtime
 tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
 
 # WebSocket server for Flutter communication
 tokio-tungstenite = "0.21"

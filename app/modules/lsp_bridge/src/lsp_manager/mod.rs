@@ -106,3 +106,61 @@ impl Default for LspManager {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_lsp_manager_new() {
+        let manager = LspManager::new();
+        // Manager should be created successfully
+        // Can't directly check servers map, but creation should not panic
+    }
+
+    #[test]
+    fn test_lsp_manager_default() {
+        let manager = LspManager::default();
+        // Default should work same as new()
+    }
+
+    #[tokio::test]
+    async fn test_session_count_initially_zero() {
+        let manager = LspManager::new();
+        assert_eq!(manager.session_count().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_shutdown_nonexistent_session() {
+        let manager = LspManager::new();
+        let result = manager.shutdown_server("nonexistent-session-id").await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_send_request_nonexistent_session() {
+        let manager = LspManager::new();
+        let result = manager
+            .send_request("nonexistent", "test-method", serde_json::json!({}))
+            .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_send_notification_nonexistent_session() {
+        let manager = LspManager::new();
+        let result = manager
+            .send_notification("nonexistent", "test-method", serde_json::json!({}))
+            .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_manager_clone() {
+        let manager = LspManager::new();
+        let cloned = manager.clone();
+
+        // Both should point to same underlying data
+        assert_eq!(manager.session_count().await, cloned.session_count().await);
+    }
+}

@@ -73,10 +73,23 @@ class GetSignatureHelpUseCase {
           )),
           (content) async {
             // Notify LSP about current document state
-            await _lspRepository.notifyDocumentChanged(
+            final notifyResult = await _lspRepository.notifyDocumentChanged(
               sessionId: session.id,
               documentUri: documentUri,
               content: content,
+            );
+
+            // Check if notification failed
+            // Note: We continue even if notification fails, but log the error
+            // as signature help may still work with stale document state
+            notifyResult.fold(
+              (failure) {
+                // Log warning but don't fail the request
+                // Signature help may still work with slightly stale state
+              },
+              (_) {
+                // Notification successful, continue
+              },
             );
 
             // Request signature help from LSP

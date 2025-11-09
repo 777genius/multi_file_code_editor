@@ -38,6 +38,12 @@ class CodeLensService {
   /// Cache of code lenses by document URI
   final Map<DocumentUri, List<CodeLens>> _codeLensCache = {};
 
+  /// Access order for LRU eviction (most recently accessed at end)
+  final List<DocumentUri> _accessOrder = [];
+
+  /// Maximum number of documents to cache (prevents unbounded growth)
+  static const int _maxCacheSize = 100;
+
   /// Stream controller for code lens updates
   final _codeLensController = StreamController<CodeLensUpdate>.broadcast();
 
@@ -68,6 +74,8 @@ class CodeLensService {
 
     // Check cache if not forcing refresh
     if (!forceRefresh && _codeLensCache.containsKey(documentUri)) {
+      // Update access order for LRU
+      _updateAccessOrder(documentUri);
       return right(_codeLensCache[documentUri]!);
     }
 
@@ -84,8 +92,8 @@ class CodeLensService {
         );
 
         return codeLensesResult.map((codeLenses) {
-          // Update cache
-          _codeLensCache[documentUri] = codeLenses;
+          // Update cache with LRU eviction
+          _addToCache(documentUri, codeLenses);
 
           // Emit update event
           _codeLensController.add(CodeLensUpdate(
@@ -199,6 +207,7 @@ class CodeLensService {
   /// - [documentUri]: Document URI
   void clearCodeLenses({required DocumentUri documentUri}) {
     _codeLensCache.remove(documentUri);
+    _accessOrder.remove(documentUri);
 
     _codeLensController.add(CodeLensUpdate(
       documentUri: documentUri,
@@ -209,6 +218,7 @@ class CodeLensService {
   /// Clears all code lenses.
   void clearAllCodeLenses() {
     _codeLensCache.clear();
+    _accessOrder.clear();
   }
 
   /// Enables or disables code lenses globally.
@@ -224,6 +234,28 @@ class CodeLensService {
 
   /// Checks if code lenses are enabled.
   bool get isEnabled => _enabled;
+
+  /// Updates access order for LRU tracking (moves to end = most recently used).
+  void _updateAccessOrder(DocumentUri uri) {
+    _accessOrder.remove(uri);
+    _accessOrder.add(uri);
+  }
+
+  /// Adds code lenses to cache with LRU eviction if needed.
+  void _addToCache(DocumentUri uri, List<CodeLens> codeLenses) {
+    // Evict least recently used entry if cache is full
+    if (_codeLensCache.length >= _maxCacheSize && !_codeLensCache.containsKey(uri)) {
+      if (_accessOrder.isNotEmpty) {
+        final lruUri = _accessOrder.first;
+        _codeLensCache.remove(lruUri);
+        _accessOrder.removeAt(0);
+      }
+    }
+
+    // Add or update cache entry
+    _codeLensCache[uri] = codeLenses;
+    _updateAccessOrder(uri);
+  }
 
   /// Stream of code lens updates.
   Stream<CodeLensUpdate> get onCodeLensChanged => _codeLensController.stream;

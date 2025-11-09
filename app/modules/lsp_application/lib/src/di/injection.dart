@@ -25,5 +25,5 @@ final getIt = GetIt.instance;
   asExtension: true,
 )
 Future<void> configureLspApplicationDependencies() async {
-  getIt.init();
+  await getIt.init();
 }

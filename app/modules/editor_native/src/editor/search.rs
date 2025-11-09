@@ -129,7 +129,13 @@ fn is_word_boundary(ch: Option<char>) -> bool {
 
 /// Find next match from current position.
 ///
-/// This is optimized for interactive search (find next/previous).
+/// Note: Currently searches entire document from current position,
+/// which may be slow for large documents. Returns first match after
+/// current position.
+///
+/// # Performance
+/// O(n) where n = document size. For better interactive performance,
+/// consider implementing incremental search or limiting search range.
 pub fn find_next(
     rope: &Rope,
     query: &str,

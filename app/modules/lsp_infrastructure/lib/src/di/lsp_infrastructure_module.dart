@@ -34,7 +34,6 @@ abstract class LspInfrastructureModule {
   /// Parameters:
   /// - [bridgeUrl]: WebSocket URL for LSP Bridge (default: ws://localhost:9999)
   @singleton
-  @Named('lspBridgeUrl')
   ILspClientRepository provideLspClientRepository(
     @Named('lspBridgeUrl') String bridgeUrl,
   ) {

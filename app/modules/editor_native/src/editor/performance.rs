@@ -17,7 +17,13 @@ pub struct PerformanceMetrics {
 }
 
 impl PerformanceMetrics {
+    /// Creates a new PerformanceMetrics instance.
+    ///
+    /// # Panics
+    /// Panics if max_samples is 0, as this would create non-functional metrics.
     pub fn new(max_samples: usize) -> Self {
+        assert!(max_samples > 0, "max_samples must be greater than 0");
+
         Self {
             insert_times: VecDeque::with_capacity(max_samples),
             delete_times: VecDeque::with_capacity(max_samples),

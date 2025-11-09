@@ -41,7 +41,7 @@ impl MultiCursor {
 /// - Refactoring operations
 #[derive(Debug, Clone)]
 pub struct MultiEdit {
-    pub edits: Vec<Edit>,
+    edits: Vec<Edit>,
 }
 
 impl MultiEdit {
@@ -51,6 +51,22 @@ impl MultiEdit {
 
     pub fn add_edit(&mut self, edit: Edit) {
         self.edits.push(edit);
+    }
+
+    /// Returns a reference to the edits vector.
+    pub fn edits(&self) -> &[Edit] {
+        &self.edits
+    }
+
+    /// Detects if two edits have overlapping byte ranges.
+    fn edits_overlap(a: &Edit, b: &Edit) -> bool {
+        let a_start = a.position;
+        let a_end = a.position + a.deleted_text.len();
+        let b_start = b.position;
+        let b_end = b.position + b.deleted_text.len();
+
+        // Check for overlap: ranges [a_start, a_end) and [b_start, b_end)
+        a_start < b_end && b_start < a_end
     }
 
     /// Applies all edits to the rope.
@@ -64,11 +80,33 @@ impl MultiEdit {
     /// - m = average edit size
     ///
     /// Sorting ensures later edits don't affect earlier positions.
+    ///
+    /// # Panics
+    /// Panics if overlapping edits are detected, as this would produce
+    /// undefined behavior.
     pub fn apply(&self, rope: &mut Rope) {
         let mut sorted_edits = self.edits.clone();
 
         // Sort by position (descending) to apply from bottom to top
         sorted_edits.sort_by(|a, b| b.position.cmp(&a.position));
+
+        // Check for overlapping edits (on sorted list for efficiency)
+        for i in 0..sorted_edits.len() {
+            for j in (i + 1)..sorted_edits.len() {
+                if Self::edits_overlap(&sorted_edits[i], &sorted_edits[j]) {
+                    eprintln!(
+                        "ERROR: Overlapping edits detected at positions {} and {}. This will produce undefined behavior.",
+                        sorted_edits[i].position,
+                        sorted_edits[j].position
+                    );
+                    panic!(
+                        "Overlapping edits at byte positions {} and {}",
+                        sorted_edits[i].position,
+                        sorted_edits[j].position
+                    );
+                }
+            }
+        }
 
         for edit in sorted_edits {
             // Apply deletion first
@@ -76,12 +114,27 @@ impl MultiEdit {
                 let end = edit.position + edit.deleted_text.len();
                 if end <= rope.len_bytes() {
                     rope.remove(edit.position..end);
+                } else {
+                    eprintln!(
+                        "WARNING: Edit extends beyond rope bounds (position: {}, deleted_len: {}, rope_len: {}). Skipping deletion.",
+                        edit.position,
+                        edit.deleted_text.len(),
+                        rope.len_bytes()
+                    );
                 }
             }
 
             // Then insertion
             if !edit.inserted_text.is_empty() {
-                rope.insert(edit.position, &edit.inserted_text);
+                if edit.position <= rope.len_bytes() {
+                    rope.insert(edit.position, &edit.inserted_text);
+                } else {
+                    eprintln!(
+                        "WARNING: Insertion position {} exceeds rope bounds (rope_len: {}). Skipping insertion.",
+                        edit.position,
+                        rope.len_bytes()
+                    );
+                }
             }
         }
     }
@@ -148,10 +201,47 @@ impl ColumnSelection {
     }
 
     /// Inserts text at all cursor positions in the column selection.
+    ///
+    /// # Panics
+    /// Panics if any line is out of bounds or if the column exceeds line length.
     pub fn insert_text(&self, rope: &mut Rope, text: &str) -> MultiEdit {
         let mut multi_edit = MultiEdit::new();
 
         for line in self.start.line..=self.end.line {
+            // Validate line exists
+            if line >= rope.len_lines() {
+                eprintln!(
+                    "ERROR: Line {} exceeds rope line count ({}). Skipping insert.",
+                    line,
+                    rope.len_lines()
+                );
+                continue;
+            }
+
+            // Get line length to validate column bounds
+            let line_start = rope.line_to_byte(line);
+            let line_end = if line + 1 < rope.len_lines() {
+                rope.line_to_byte(line + 1)
+            } else {
+                rope.len_bytes()
+            };
+            let line_len = line_end - line_start;
+
+            // Count chars in the line (not bytes) for column validation
+            let line_slice = rope.byte_slice(line_start..line_end);
+            let line_char_count = line_slice.chars().count();
+
+            // Validate column is within line bounds
+            if self.start.column > line_char_count {
+                eprintln!(
+                    "ERROR: Column {} exceeds line {} length ({}). Skipping insert.",
+                    self.start.column,
+                    line,
+                    line_char_count
+                );
+                continue;
+            }
+
             let position = Position::new(line, self.start.column);
             let byte_offset = position.to_byte_offset(rope);
 

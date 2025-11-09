@@ -3,18 +3,26 @@ use ropey::Rope;
 use tree_sitter::{Parser, Language, Tree};
 
 // Sub-modules
+pub mod cursor;
 pub mod search;
 pub mod multiline_edit;
 pub mod performance;
 pub mod clipboard;
 pub mod syntax_query;
+pub mod bracket_matching;
+pub mod auto_indent;
+pub mod comment_toggle;
 
 // Re-export commonly used items
+pub use cursor::{Position as CursorPosition, Selection};
 pub use search::{SearchOptions, SearchMatch, search_rope, find_next, replace_all};
 pub use multiline_edit::{MultiCursor, ColumnSelection, MultiEdit};
 pub use performance::{PerformanceMetrics, OperationTimer, PerformanceStats};
 pub use clipboard::{Clipboard, ClipboardMode, copy_text, cut_text, paste_text};
 pub use syntax_query::{SyntaxQuery, QueryError};
+pub use bracket_matching::{BracketType, BracketMatch, find_matching_bracket, find_all_bracket_pairs, are_brackets_balanced};
+pub use auto_indent::{IndentConfig, calculate_indent_for_newline, indent_lines, dedent_lines, normalize_indentation};
+pub use comment_toggle::{CommentConfig, toggle_line_comments, toggle_block_comment};
 
 /// Cursor position in the editor (0-indexed)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

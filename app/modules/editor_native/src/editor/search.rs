@@ -2,7 +2,7 @@ use ropey::Rope;
 use crate::editor::Position;
 
 /// Search options for find/replace operations.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SearchOptions {
     /// Case-sensitive search
     pub case_sensitive: bool,
@@ -12,17 +12,6 @@ pub struct SearchOptions {
     pub regex: bool,
     /// Search backwards
     pub backwards: bool,
-}
-
-impl Default for SearchOptions {
-    fn default() -> Self {
-        Self {
-            case_sensitive: false,
-            whole_word: false,
-            regex: false,
-            backwards: false,
-        }
-    }
 }
 
 /// Search result containing match position and text.

@@ -1,4 +1,6 @@
-use tree_sitter::{Node, Parser, Query, QueryCursor, Tree};
+use tree_sitter::{Node, Query, QueryCursor, Tree};
+#[cfg(test)]
+use tree_sitter::Parser;
 
 /// Syntax tree query utilities.
 ///

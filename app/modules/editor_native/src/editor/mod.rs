@@ -37,9 +37,11 @@ pub enum LanguageId {
     PlainText,
 }
 
-impl LanguageId {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
+impl std::str::FromStr for LanguageId {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s.to_lowercase().as_str() {
             "rust" | "rs" => Self::Rust,
             "javascript" | "js" => Self::JavaScript,
             "typescript" | "ts" => Self::TypeScript,
@@ -48,7 +50,14 @@ impl LanguageId {
             "go" => Self::Go,
             "dart" => Self::Dart,
             _ => Self::PlainText,
-        }
+        })
+    }
+}
+
+impl LanguageId {
+    /// Creates a LanguageId from a string identifier
+    pub fn parse(s: &str) -> Self {
+        s.parse().unwrap_or(Self::PlainText)
     }
 
     pub fn tree_sitter_language(&self) -> Option<Language> {
@@ -64,12 +73,12 @@ impl LanguageId {
     }
 }
 
-/// Undo/Redo history
+/// Edit record for undo/redo operations
 #[derive(Debug, Clone)]
-struct Edit {
-    position: usize,
-    deleted_text: String,
-    inserted_text: String,
+pub struct Edit {
+    pub position: usize,
+    pub deleted_text: String,
+    pub inserted_text: String,
 }
 
 /// Main Editor struct
@@ -496,26 +505,26 @@ mod tests {
 
     #[test]
     fn test_language_from_str() {
-        assert_eq!(LanguageId::from_str("rust"), LanguageId::Rust);
-        assert_eq!(LanguageId::from_str("rs"), LanguageId::Rust);
-        assert_eq!(LanguageId::from_str("Rust"), LanguageId::Rust);
-        assert_eq!(LanguageId::from_str("RUST"), LanguageId::Rust);
+        assert_eq!(LanguageId::parse("rust"), LanguageId::Rust);
+        assert_eq!(LanguageId::parse("rs"), LanguageId::Rust);
+        assert_eq!(LanguageId::parse("Rust"), LanguageId::Rust);
+        assert_eq!(LanguageId::parse("RUST"), LanguageId::Rust);
 
-        assert_eq!(LanguageId::from_str("javascript"), LanguageId::JavaScript);
-        assert_eq!(LanguageId::from_str("js"), LanguageId::JavaScript);
+        assert_eq!(LanguageId::parse("javascript"), LanguageId::JavaScript);
+        assert_eq!(LanguageId::parse("js"), LanguageId::JavaScript);
 
-        assert_eq!(LanguageId::from_str("typescript"), LanguageId::TypeScript);
-        assert_eq!(LanguageId::from_str("ts"), LanguageId::TypeScript);
+        assert_eq!(LanguageId::parse("typescript"), LanguageId::TypeScript);
+        assert_eq!(LanguageId::parse("ts"), LanguageId::TypeScript);
 
-        assert_eq!(LanguageId::from_str("python"), LanguageId::Python);
-        assert_eq!(LanguageId::from_str("py"), LanguageId::Python);
+        assert_eq!(LanguageId::parse("python"), LanguageId::Python);
+        assert_eq!(LanguageId::parse("py"), LanguageId::Python);
 
-        assert_eq!(LanguageId::from_str("java"), LanguageId::Java);
-        assert_eq!(LanguageId::from_str("go"), LanguageId::Go);
-        assert_eq!(LanguageId::from_str("dart"), LanguageId::Dart);
+        assert_eq!(LanguageId::parse("java"), LanguageId::Java);
+        assert_eq!(LanguageId::parse("go"), LanguageId::Go);
+        assert_eq!(LanguageId::parse("dart"), LanguageId::Dart);
 
-        assert_eq!(LanguageId::from_str("unknown"), LanguageId::PlainText);
-        assert_eq!(LanguageId::from_str(""), LanguageId::PlainText);
+        assert_eq!(LanguageId::parse("unknown"), LanguageId::PlainText);
+        assert_eq!(LanguageId::parse(""), LanguageId::PlainText);
     }
 
     #[test]

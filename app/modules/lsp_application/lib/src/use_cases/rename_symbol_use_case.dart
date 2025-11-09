@@ -55,75 +55,66 @@ class RenameSymbolUseCase {
     required CursorPosition position,
     required String newName,
   }) async {
-    // Step 1: Validate new name
+    // Validate new name
     if (newName.isEmpty || !_isValidIdentifier(newName)) {
       return left(const LspFailure.invalidParams(
         message: 'Invalid new name for symbol',
       ));
     }
 
-    // Step 2: Get LSP session
+    // Get LSP session
     final sessionResult = await _lspRepository.getSession(languageId);
 
-    final session = sessionResult.fold(
-      (failure) => null,
-      (s) => s,
+    return sessionResult.fold(
+      (failure) => left(failure),
+      (session) async {
+        // Validate session can handle requests
+        if (!session.canHandleRequests) {
+          return left(LspFailure.serverNotResponding(
+            message: 'LSP session is not ready (state: ${session.state})',
+          ));
+        }
+
+        // Get current document content and sync with LSP
+        final contentResult = await _editorRepository.getContent();
+
+        return contentResult.fold(
+          (failure) => left(const LspFailure.unexpected(
+            message: 'Failed to get document content from editor',
+          )),
+          (content) async {
+            // Notify LSP about current document state
+            await _lspRepository.notifyDocumentChanged(
+              sessionId: session.id,
+              documentUri: documentUri,
+              content: content,
+            );
+
+            // Request rename from LSP
+            final renameResult = await _lspRepository.rename(
+              sessionId: session.id,
+              documentUri: documentUri,
+              position: position,
+              newName: newName,
+            );
+
+            // Process workspace edits
+            return renameResult.map((workspaceEdit) {
+              // Count affected files
+              final changedFiles = workspaceEdit.changes.length;
+              final totalEdits = workspaceEdit.changes.values
+                  .fold(0, (sum, edits) => sum + edits.length);
+
+              return RenameResult(
+                changedFiles: changedFiles,
+                totalEdits: totalEdits,
+                workspaceEdit: workspaceEdit,
+              );
+            });
+          },
+        );
+      },
     );
-
-    if (session == null) {
-      return left(LspFailure.sessionNotFound(
-        message: 'No LSP session found for language: ${languageId.value}',
-      ));
-    }
-
-    if (!session.canHandleRequests) {
-      return left(LspFailure.serverNotResponding(
-        message: 'LSP session is not ready (state: ${session.state})',
-      ));
-    }
-
-    // Step 3: Get current document content
-    final contentResult = await _editorRepository.getContent();
-
-    final content = contentResult.fold(
-      (failure) => null,
-      (c) => c,
-    );
-
-    if (content == null) {
-      return left(const LspFailure.unexpected(
-        message: 'Failed to get document content from editor',
-      ));
-    }
-
-    // Step 4: Notify LSP about current document state
-    await _lspRepository.notifyDocumentChanged(
-      sessionId: session.id,
-      documentUri: documentUri,
-      content: content,
-    );
-
-    // Step 5: Request rename from LSP
-    final renameResult = await _lspRepository.rename(
-      sessionId: session.id,
-      documentUri: documentUri,
-      position: position,
-      newName: newName,
-    );
-
-    // Step 6: Process workspace edits
-    return renameResult.map((workspaceEdit) {
-      // Count affected files
-      final changedFiles = workspaceEdit.changes.length;
-      final totalEdits = workspaceEdit.changes.values
-          .fold(0, (sum, edits) => sum + edits.length);
-
-      return RenameResult(
-        changedFiles: changedFiles,
-        totalEdits: totalEdits,
-        workspaceEdit: workspaceEdit,
-      );
-    });
   }
 
   /// Validates if a string is a valid identifier.

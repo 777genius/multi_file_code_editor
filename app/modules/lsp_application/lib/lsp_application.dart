@@ -58,8 +58,17 @@ export 'src/use_cases/go_to_definition_use_case.dart';
 export 'src/use_cases/find_references_use_case.dart';
 export 'src/use_cases/initialize_lsp_session_use_case.dart';
 export 'src/use_cases/shutdown_lsp_session_use_case.dart';
+export 'src/use_cases/format_document_use_case.dart';
+export 'src/use_cases/rename_symbol_use_case.dart';
+export 'src/use_cases/get_code_actions_use_case.dart';
+export 'src/use_cases/get_signature_help_use_case.dart';
 
 // Application Services
 export 'src/services/lsp_session_service.dart';
 export 'src/services/editor_sync_service.dart';
 export 'src/services/diagnostic_service.dart';
+export 'src/services/code_lens_service.dart';
+
+// Dependency Injection
+export 'src/di/lsp_application_module.dart';
+export 'src/di/injection.dart';

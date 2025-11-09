@@ -4,6 +4,7 @@ import 'package:lsp_domain/lsp_domain.dart';
 import '../services/lsp_session_service.dart';
 import '../services/diagnostic_service.dart';
 import '../services/editor_sync_service.dart';
+import '../services/code_lens_service.dart';
 import '../use_cases/get_completions_use_case.dart';
 import '../use_cases/get_hover_info_use_case.dart';
 import '../use_cases/get_diagnostics_use_case.dart';
@@ -11,6 +12,10 @@ import '../use_cases/go_to_definition_use_case.dart';
 import '../use_cases/find_references_use_case.dart';
 import '../use_cases/initialize_lsp_session_use_case.dart';
 import '../use_cases/shutdown_lsp_session_use_case.dart';
+import '../use_cases/format_document_use_case.dart';
+import '../use_cases/rename_symbol_use_case.dart';
+import '../use_cases/get_code_actions_use_case.dart';
+import '../use_cases/get_signature_help_use_case.dart';
 
 /// Dependency Injection module for LSP Application Layer.
 ///
@@ -69,6 +74,16 @@ abstract class LspApplicationModule {
       lspRepository: lspRepository,
       sessionService: sessionService,
     );
+  }
+
+  /// Provides CodeLensService (singleton).
+  ///
+  /// Manages code lenses (inline actionable insights).
+  @singleton
+  CodeLensService provideCodeLensService(
+    ILspClientRepository lspRepository,
+  ) {
+    return CodeLensService(lspRepository);
   }
 
   // ================================================================
@@ -133,5 +148,41 @@ abstract class LspApplicationModule {
     ILspClientRepository lspRepository,
   ) {
     return ShutdownLspSessionUseCase(lspRepository);
+  }
+
+  /// Provides FormatDocumentUseCase (factory).
+  @injectable
+  FormatDocumentUseCase provideFormatDocumentUseCase(
+    ILspClientRepository lspRepository,
+    ICodeEditorRepository editorRepository,
+  ) {
+    return FormatDocumentUseCase(lspRepository, editorRepository);
+  }
+
+  /// Provides RenameSymbolUseCase (factory).
+  @injectable
+  RenameSymbolUseCase provideRenameSymbolUseCase(
+    ILspClientRepository lspRepository,
+    ICodeEditorRepository editorRepository,
+  ) {
+    return RenameSymbolUseCase(lspRepository, editorRepository);
+  }
+
+  /// Provides GetCodeActionsUseCase (factory).
+  @injectable
+  GetCodeActionsUseCase provideGetCodeActionsUseCase(
+    ILspClientRepository lspRepository,
+    ICodeEditorRepository editorRepository,
+  ) {
+    return GetCodeActionsUseCase(lspRepository, editorRepository);
+  }
+
+  /// Provides GetSignatureHelpUseCase (factory).
+  @injectable
+  GetSignatureHelpUseCase provideGetSignatureHelpUseCase(
+    ILspClientRepository lspRepository,
+    ICodeEditorRepository editorRepository,
+  ) {
+    return GetSignatureHelpUseCase(lspRepository, editorRepository);
   }
 }

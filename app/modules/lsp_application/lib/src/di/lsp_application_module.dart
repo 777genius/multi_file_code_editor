@@ -230,8 +230,9 @@ abstract class LspApplicationModule {
   @injectable
   GetSignatureHelpUseCase provideGetSignatureHelpUseCase(
     ILspClientRepository lspRepository,
+    ICodeEditorRepository editorRepository,
   ) {
-    return GetSignatureHelpUseCase(lspRepository);
+    return GetSignatureHelpUseCase(lspRepository, editorRepository);
   }
 
   /// Provides ExecuteCodeActionUseCase (factory).

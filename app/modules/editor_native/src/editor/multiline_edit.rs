@@ -218,14 +218,13 @@ impl ColumnSelection {
                 continue;
             }
 
-            // Get line length to validate column bounds
+            // Get line bounds to validate column
             let line_start = rope.line_to_byte(line);
             let line_end = if line + 1 < rope.len_lines() {
                 rope.line_to_byte(line + 1)
             } else {
                 rope.len_bytes()
             };
-            let line_len = line_end - line_start;
 
             // Count chars in the line (not bytes) for column validation
             let line_slice = rope.byte_slice(line_start..line_end);

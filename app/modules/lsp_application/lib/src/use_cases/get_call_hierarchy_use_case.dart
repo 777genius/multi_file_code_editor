@@ -71,14 +71,13 @@ class GetCallHierarchyUseCase {
 
         return prepareResult.fold(
           (failure) => left(failure),
-          (items) async {
-            if (items.isEmpty) {
+          (item) async {
+            if (item == null) {
               // No symbol at position
-              return right(CallHierarchyResult.empty());
+              return left(const LspFailure.unexpected(
+                message: 'No call hierarchy item found at position',
+              ));
             }
-
-            // Use first item (usually the most relevant)
-            final item = items.first;
 
             List<CallHierarchyIncomingCall> incomingCalls = [];
             List<CallHierarchyOutgoingCall> outgoingCalls = [];
@@ -135,43 +134,4 @@ enum CallHierarchyDirection {
 
   /// Get both incoming and outgoing calls
   both,
-}
-
-/// Result of call hierarchy query.
-class CallHierarchyResult {
-  /// The symbol for which hierarchy was requested
-  final CallHierarchyItem item;
-
-  /// Incoming calls (who calls this symbol)
-  final List<CallHierarchyIncomingCall> incomingCalls;
-
-  /// Outgoing calls (what this symbol calls)
-  final List<CallHierarchyOutgoingCall> outgoingCalls;
-
-  const CallHierarchyResult({
-    required this.item,
-    required this.incomingCalls,
-    required this.outgoingCalls,
-  });
-
-  /// Creates empty result (no symbol found).
-  factory CallHierarchyResult.empty() {
-    return CallHierarchyResult(
-      item: CallHierarchyItem.empty(),
-      incomingCalls: const [],
-      outgoingCalls: const [],
-    );
-  }
-
-  /// Gets total number of calls.
-  int get totalCalls => incomingCalls.length + outgoingCalls.length;
-
-  /// Checks if result is empty.
-  bool get isEmpty => totalCalls == 0;
-
-  /// Checks if result has incoming calls.
-  bool get hasIncomingCalls => incomingCalls.isNotEmpty;
-
-  /// Checks if result has outgoing calls.
-  bool get hasOutgoingCalls => outgoingCalls.isNotEmpty;
 }

@@ -71,14 +71,13 @@ class GetTypeHierarchyUseCase {
 
         return prepareResult.fold(
           (failure) => left(failure),
-          (items) async {
-            if (items.isEmpty) {
+          (item) async {
+            if (item == null) {
               // No type at position
-              return right(TypeHierarchyResult.empty());
+              return left(const LspFailure.unexpected(
+                message: 'No type hierarchy item found at position',
+              ));
             }
-
-            // Use first item (usually the most relevant)
-            final item = items.first;
 
             List<TypeHierarchyItem> supertypes = [];
             List<TypeHierarchyItem> subtypes = [];
@@ -135,49 +134,4 @@ enum TypeHierarchyDirection {
 
   /// Get both supertypes and subtypes
   both,
-}
-
-/// Result of type hierarchy query.
-class TypeHierarchyResult {
-  /// The type for which hierarchy was requested
-  final TypeHierarchyItem item;
-
-  /// Supertypes (what this extends/implements)
-  final List<TypeHierarchyItem> supertypes;
-
-  /// Subtypes (what extends/implements this)
-  final List<TypeHierarchyItem> subtypes;
-
-  const TypeHierarchyResult({
-    required this.item,
-    required this.supertypes,
-    required this.subtypes,
-  });
-
-  /// Creates empty result (no type found).
-  factory TypeHierarchyResult.empty() {
-    return TypeHierarchyResult(
-      item: TypeHierarchyItem.empty(),
-      supertypes: const [],
-      subtypes: const [],
-    );
-  }
-
-  /// Gets total number of related types.
-  int get totalTypes => supertypes.length + subtypes.length;
-
-  /// Checks if result is empty.
-  bool get isEmpty => totalTypes == 0;
-
-  /// Checks if result has supertypes.
-  bool get hasSupertypes => supertypes.isNotEmpty;
-
-  /// Checks if result has subtypes.
-  bool get hasSubtypes => subtypes.isNotEmpty;
-
-  /// Gets inheritance depth (how many levels of supertypes).
-  int get inheritanceDepth => supertypes.length;
-
-  /// Gets implementation count (how many subtypes).
-  int get implementationCount => subtypes.length;
 }

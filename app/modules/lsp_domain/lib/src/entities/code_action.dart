@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:editor_core/editor_core.dart';
-import '../repositories/i_lsp_client_repository.dart';
 import 'completion_list.dart';
 import 'diagnostic.dart';
 

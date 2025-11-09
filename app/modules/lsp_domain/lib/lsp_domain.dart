@@ -15,6 +15,11 @@ export 'src/entities/document_symbol.dart';
 export 'src/entities/formatting_options.dart';
 export 'src/entities/call_hierarchy.dart';
 export 'src/entities/type_hierarchy.dart';
+export 'src/entities/code_lens.dart';
+export 'src/entities/semantic_tokens.dart';
+export 'src/entities/inlay_hint.dart';
+export 'src/entities/folding_range.dart';
+export 'src/entities/document_link.dart';
 
 // Value Objects
 export 'src/value_objects/session_id.dart';

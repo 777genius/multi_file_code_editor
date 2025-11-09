@@ -838,4 +838,34 @@ class WebSocketLspClientRepository implements ILspClientRepository {
       mapper: (result) => LspProtocolMappers.toDomainTypeHierarchyItems(result as List?),
     );
   }
+
+  @override
+  Future<Either<LspFailure, List<CodeLens>>> getCodeLenses({
+    required SessionId sessionId,
+    required DocumentUri documentUri,
+  }) async {
+    return _sendRequest(
+      method: 'textDocument/codeLens',
+      params: {
+        'sessionId': sessionId.value,
+        'textDocument': LspProtocolMappers.toTextDocumentIdentifier(documentUri),
+      },
+      mapper: (result) => LspProtocolMappers.toDomainCodeLenses(result as List?),
+    );
+  }
+
+  @override
+  Future<Either<LspFailure, CodeLens>> resolveCodeLens({
+    required SessionId sessionId,
+    required CodeLens codeLens,
+  }) async {
+    return _sendRequest(
+      method: 'codeLens/resolve',
+      params: {
+        'sessionId': sessionId.value,
+        'codeLens': LspProtocolMappers.fromDomainCodeLens(codeLens),
+      },
+      mapper: (result) => LspProtocolMappers.toDomainCodeLens(result as Map<String, dynamic>),
+    );
+  }
 }

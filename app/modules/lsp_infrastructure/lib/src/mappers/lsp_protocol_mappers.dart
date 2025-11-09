@@ -660,4 +660,58 @@ class LspProtocolMappers {
         .map((item) => _toDomainTypeHierarchyItemSingle(item as Map<String, dynamic>))
         .toList();
   }
+
+  // ================================================================
+  // Code Lens Mapping
+  // ================================================================
+
+  /// Converts list of LSP code lenses to domain.
+  static List<CodeLens> toDomainCodeLenses(List<dynamic>? json) {
+    if (json == null) return [];
+
+    return json
+        .map((item) => toDomainCodeLens(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Converts single LSP code lens to domain.
+  static CodeLens toDomainCodeLens(Map<String, dynamic> json) {
+    Command? command;
+    if (json.containsKey('command') && json['command'] != null) {
+      final commandJson = json['command'] as Map<String, dynamic>;
+      command = Command(
+        title: commandJson['title'] as String,
+        command: commandJson['command'] as String,
+        arguments: commandJson['arguments'] as List<dynamic>?,
+      );
+    }
+
+    return CodeLens(
+      range: toDomainRange(json['range'] as Map<String, dynamic>),
+      command: command,
+      data: json['data'],
+    );
+  }
+
+  /// Converts domain code lens to LSP format.
+  static Map<String, dynamic> fromDomainCodeLens(CodeLens codeLens) {
+    final result = <String, dynamic>{
+      'range': fromDomainRange(codeLens.range),
+    };
+
+    if (codeLens.command != null) {
+      result['command'] = {
+        'title': codeLens.command!.title,
+        'command': codeLens.command!.command,
+        if (codeLens.command!.arguments != null)
+          'arguments': codeLens.command!.arguments,
+      };
+    }
+
+    if (codeLens.data != null) {
+      result['data'] = codeLens.data;
+    }
+
+    return result;
+  }
 }

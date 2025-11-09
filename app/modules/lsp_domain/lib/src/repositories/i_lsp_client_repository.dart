@@ -201,6 +201,18 @@ abstract class ILspClientRepository {
     required TypeHierarchyItem item,
   });
 
+  /// Gets code lenses for a document
+  Future<Either<LspFailure, List<CodeLens>>> getCodeLenses({
+    required SessionId sessionId,
+    required DocumentUri documentUri,
+  });
+
+  /// Resolves a code lens (fetches additional data)
+  Future<Either<LspFailure, CodeLens>> resolveCodeLens({
+    required SessionId sessionId,
+    required CodeLens codeLens,
+  });
+
   // ============================================================
   // Events
   // ============================================================

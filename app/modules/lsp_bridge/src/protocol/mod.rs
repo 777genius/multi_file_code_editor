@@ -128,7 +128,9 @@ async fn handle_request(
         "callHierarchy/outgoingCalls" |
         "textDocument/prepareTypeHierarchy" |
         "typeHierarchy/supertypes" |
-        "typeHierarchy/subtypes" => {
+        "typeHierarchy/subtypes" |
+        "textDocument/codeLens" |
+        "codeLens/resolve" => {
             handle_generic_lsp_request(id, &request.method, request.params, lsp_manager).await
         }
         _ => {

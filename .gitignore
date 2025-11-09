@@ -50,8 +50,8 @@ app.*.map.json
 .melos_tool/
 
 # Generated files
-*.g.dart
-*.freezed.dart
+# *.g.dart        # Commented out for pub.dev publishing - these files must be committed
+# *.freezed.dart  # Commented out for pub.dev publishing - these files must be committed
 *.mocks.dart
 
 # Coverage

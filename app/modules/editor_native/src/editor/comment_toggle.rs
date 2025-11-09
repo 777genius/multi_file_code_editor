@@ -213,11 +213,11 @@ pub fn toggle_block_comment(
     end_pos: Position,
     config: &CommentConfig,
 ) -> bool {
-    let Some(block_start) = &config.block_comment_start else {
+    let Some(_block_start) = &config.block_comment_start else {
         return false; // No block comments for this language
     };
 
-    let Some(block_end) = &config.block_comment_end else {
+    let Some(_block_end) = &config.block_comment_end else {
         return false;
     };
 

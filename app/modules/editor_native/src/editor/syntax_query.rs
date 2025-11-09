@@ -79,7 +79,7 @@ impl<'a> SyntaxQuery<'a> {
         pattern: &str,
         language: &tree_sitter::Language,
     ) -> Result<Vec<(Node<'a>, String)>, QueryError> {
-        let query = Query::new(language, pattern)
+        let query = Query::new(*language, pattern)
             .map_err(|e| QueryError::InvalidPattern(e.to_string()))?;
 
         let mut cursor = QueryCursor::new();

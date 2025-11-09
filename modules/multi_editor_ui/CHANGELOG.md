@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.2] - 2025-11-09
+
+### Fixed
+- Fixed missing Freezed-generated files (editor_state.freezed.dart, file_tree_state.freezed.dart)
+- Package now compiles correctly when installed from pub.dev
+- Users can now use multi_editor_ui without build_runner errors
 
 ## [0.1.1] - 2025-01-08
 

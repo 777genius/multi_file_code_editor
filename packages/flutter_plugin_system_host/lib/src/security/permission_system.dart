@@ -214,9 +214,10 @@ class PermissionSystem {
       };
     }
 
+    // Use fold instead of reduce to safely handle edge cases
     final totalHostFunctions = _permissions.values
         .map((p) => p.allowedHostFunctions.length)
-        .reduce((a, b) => a + b);
+        .fold<int>(0, (a, b) => a + b);
 
     final pluginsWithNetwork =
         _permissions.values.where((p) => p.canAccessNetwork).length;

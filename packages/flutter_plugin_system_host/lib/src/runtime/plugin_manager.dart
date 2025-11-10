@@ -296,7 +296,7 @@ class PluginManager {
       pluginId,
       () async {
         // 1. Cancel event subscriptions
-        _unsubscribeFromEvents(pluginId);
+        await _unsubscribeFromEvents(pluginId);
 
         // 2. Dispose plugin
         await plugin.dispose();
@@ -307,9 +307,9 @@ class PluginManager {
         // 4. Unregister permissions
         _permissionSystem.unregisterPlugin(pluginId);
       },
-      fallback: (error) {
+      fallback: (error) async {
         // Even if dispose fails, clean up
-        _unsubscribeFromEvents(pluginId);
+        await _unsubscribeFromEvents(pluginId);
         _registry.unregister(pluginId);
         _permissionSystem.unregisterPlugin(pluginId);
       },
@@ -683,16 +683,30 @@ class PluginManager {
     // Get all plugin IDs
     final pluginIds = _registry.getAllPluginIds();
 
-    // Unload all plugins
-    await Future.wait(
-      pluginIds.map((id) => unloadPlugin(id)),
-    );
+    // Unload all plugins - continue even if some fail
+    // Use for-loop instead of Future.wait to ensure all plugins get unloaded
+    for (final id in pluginIds) {
+      try {
+        await unloadPlugin(id);
+      } catch (e, st) {
+        // Log error but continue with other plugins
+        _errorTracker.trackError(
+          PluginErrorInfo(
+            pluginId: id,
+            message: 'Error unloading plugin during dispose: $e',
+            originalError: e,
+            stackTrace: st,
+            timestamp: DateTime.now(),
+          ),
+        );
+      }
+    }
 
     // Dispose event dispatcher
     _eventDispatcher.dispose();
 
     // Dispose error tracker
-    _errorTracker.dispose();
+    await _errorTracker.dispose();
   }
 
   // ============================================================================
@@ -749,12 +763,13 @@ class PluginManager {
     }
   }
 
-  void _unsubscribeFromEvents(String pluginId) {
+  Future<void> _unsubscribeFromEvents(String pluginId) async {
     final subscriptions = _eventSubscriptions.remove(pluginId);
     if (subscriptions != null) {
-      for (final subscription in subscriptions) {
-        subscription.cancel();
-      }
+      // Wait for all subscriptions to cancel to avoid race conditions
+      await Future.wait(
+        subscriptions.map((sub) => sub.cancel()),
+      );
     }
   }
 }

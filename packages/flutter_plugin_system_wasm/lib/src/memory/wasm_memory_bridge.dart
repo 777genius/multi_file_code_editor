@@ -156,6 +156,13 @@ class WasmMemoryBridge {
       final resultPtr = (packedResult >> 32) & 0xFFFFFFFF;
       final resultLen = packedResult & 0xFFFFFFFF;
 
+      // Validate unpacked values
+      if (resultPtr < 0 || resultLen < 0) {
+        throw PluginCommunicationException(
+          'Invalid packed result from WASM: ptr=$resultPtr, len=$resultLen (packed=$packedResult)',
+        );
+      }
+
       // 6. Handle empty result
       if (resultLen == 0) {
         // Free result pointer even if length is 0 (WASM may have allocated)
@@ -231,7 +238,18 @@ class WasmMemoryBridge {
       final resultPtr = (packedResult >> 32) & 0xFFFFFFFF;
       final resultLen = packedResult & 0xFFFFFFFF;
 
+      // Validate unpacked values
+      if (resultPtr < 0 || resultLen < 0) {
+        throw WasmMemoryException(
+          'Invalid packed result from WASM: ptr=$resultPtr, len=$resultLen (packed=$packedResult)',
+        );
+      }
+
       if (resultLen == 0) {
+        // Free result pointer even if length is 0 (WASM may have allocated)
+        if (resultPtr != 0) {
+          await deallocFn([resultPtr, resultLen]);
+        }
         return Uint8List(0);
       }
 

@@ -199,9 +199,11 @@ class PluginRegistry {
   ///
   /// ## Returns
   ///
-  /// List of all registered plugins
-  List<IPlugin> getAllPlugins() {
-    return _plugins.values.map((e) => e.plugin).toList();
+  /// Map of pluginId → plugin instances
+  Map<String, IPlugin> getAllPlugins() {
+    return Map.fromEntries(
+      _plugins.entries.map((entry) => MapEntry(entry.key, entry.value.plugin)),
+    );
   }
 
   /// Get all plugin IDs

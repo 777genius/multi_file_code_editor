@@ -412,8 +412,8 @@ class ErrorTracker {
   /// Dispose tracker
   ///
   /// Closes the error stream.
-  void dispose() {
-    _errorStream.close();
+  Future<void> dispose() async {
+    await _errorStream.close();
   }
 
   @override

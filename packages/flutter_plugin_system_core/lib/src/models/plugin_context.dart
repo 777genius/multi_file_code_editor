@@ -29,7 +29,10 @@ import 'plugin_config.dart';
 /// // Plugin calls host function
 /// final file = await context.callHost<FileDocument>('get_current_file');
 /// ```
-@immutable
+///
+/// **Note**: This class is NOT immutable despite containing immutable fields,
+/// because it maintains a mutable service registry that can be modified
+/// through [registerService], [removeService], and [clearServices] methods.
 class PluginContext {
   /// Unique plugin identifier
   final String pluginId;

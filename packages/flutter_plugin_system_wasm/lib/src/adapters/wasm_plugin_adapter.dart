@@ -209,6 +209,22 @@ class WasmPluginAdapter implements IPlugin {
       final ptr = (packed >> 32) & 0xFFFFFFFF;
       final len = packed & 0xFFFFFFFF;
 
+      // Validate pointer and length
+      if (ptr < 0 || len < 0) {
+        throw WasmPluginException(
+          'Invalid manifest pointer/length: ptr=$ptr, len=$len (packed=$packed)',
+          pluginId: manifest.id,
+        );
+      }
+
+      // Sanity check: manifest should be reasonable size (max 1MB)
+      if (len > 1024 * 1024) {
+        throw WasmPluginException(
+          'Manifest too large: $len bytes (max 1MB)',
+          pluginId: manifest.id,
+        );
+      }
+
       final manifestBytes = await _memoryBridge.read(ptr, len);
       final manifestData = _memoryBridge.serializer.deserialize(manifestBytes);
 

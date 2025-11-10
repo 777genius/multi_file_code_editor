@@ -86,10 +86,10 @@ class InvalidManifestException extends PluginLoadException {
 /// Thrown when required runtime is not available.
 class RuntimeNotAvailableException extends PluginLoadException {
   /// Runtime type that was requested
-  final String runtimeType;
+  final String requestedRuntime;
 
-  RuntimeNotAvailableException(this.runtimeType)
-      : super('Runtime not available: $runtimeType');
+  RuntimeNotAvailableException(this.requestedRuntime)
+      : super('Runtime not available: $requestedRuntime');
 }
 
 // ============================================================================

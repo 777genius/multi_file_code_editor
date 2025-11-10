@@ -149,7 +149,10 @@ abstract class IPluginHost {
   // Optional: Batch operations for performance
 
   /// Check if host function exists
-  bool hasHostFunction(String name) => true;
+  ///
+  /// **Security Note**: Default implementation returns `false` (deny-by-default).
+  /// Implementations must explicitly advertise available functions.
+  bool hasHostFunction(String name) => false;
 
   /// Get all available host function names
   List<String> getAvailableHostFunctions() => [];

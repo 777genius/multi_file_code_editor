@@ -90,13 +90,20 @@ abstract class HostFunction<TResult> {
 
   /// Validate arguments
   ///
-  /// Check if arguments match signature.
+  /// Check if arguments match signature, accounting for optional parameters.
+  ///
+  /// Valid if:
+  /// - args.length >= number of required parameters
+  /// - args.length <= total number of parameters
+  ///
   /// Override for custom validation.
   bool validateArgs(List<dynamic> args) {
-    if (args.length != signature.params.length) {
-      return false;
-    }
-    return true;
+    // Count required (non-optional) parameters
+    final requiredCount = signature.params.where((p) => !p.optional).length;
+    final totalCount = signature.params.length;
+
+    // Must provide at least required params, but no more than total params
+    return args.length >= requiredCount && args.length <= totalCount;
   }
 }
 

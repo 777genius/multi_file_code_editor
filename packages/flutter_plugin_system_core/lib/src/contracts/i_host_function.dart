@@ -170,6 +170,10 @@ class HostFunctionParam {
   final bool optional;
 
   /// Default value (if optional)
+  ///
+  /// **Note**: This should only be set when [optional] is `true`.
+  /// Setting [defaultValue] when [optional] is `false` has no effect and
+  /// may indicate a logic error.
   final dynamic defaultValue;
 
   const HostFunctionParam(
@@ -178,7 +182,10 @@ class HostFunctionParam {
     this.description, {
     this.optional = false,
     this.defaultValue,
-  });
+  }) : assert(
+          optional || defaultValue == null,
+          'defaultValue should only be set when optional is true',
+        );
 
   /// Convert to JSON
   Map<String, dynamic> toJson() => {

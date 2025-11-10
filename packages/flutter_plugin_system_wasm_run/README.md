@@ -125,7 +125,7 @@ final response = await plugin.handleEvent(event);
 
 ### Platform-Specific Runtimes
 
-```
+```text
 ┌──────────────────────────────────────┐
 │         WasmRunRuntime               │
 │      (Platform Adapter)              │
@@ -146,7 +146,7 @@ final response = await plugin.handleEvent(event);
 
 ### Component Hierarchy
 
-```
+```text
 WasmRunRuntime (IWasmRuntime)
     ├── loadModule() → WasmRunModule
     │   ├── validate()

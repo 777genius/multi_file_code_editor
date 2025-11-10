@@ -146,7 +146,7 @@ class GetCurrentFileFunction extends HostFunction<FileDocument> {
 
 This package follows **Clean Architecture** principles with clear separation of concerns:
 
-```
+```text
 ┌────────────────────────────────────────┐
 │         Contracts (Interfaces)         │
 │  - IPlugin, IPluginRuntime, IPluginHost│

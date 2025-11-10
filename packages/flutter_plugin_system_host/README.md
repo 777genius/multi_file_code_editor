@@ -137,7 +137,7 @@ manager.errorStream.listen((error) {
 
 ### Component Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │             PluginManager (Facade)                  │
 │  Unified interface to the plugin system             │
@@ -160,7 +160,7 @@ manager.errorStream.listen((error) {
 
 ### Plugin Lifecycle
 
-```
+```text
 ┌──────────┐
 │ UNLOADED │
 └────┬─────┘

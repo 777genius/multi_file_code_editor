@@ -81,7 +81,7 @@ if (response.isSuccess) {
 
 ### Component Hierarchy
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │      WasmPluginRuntime                   │
 │    (IPluginRuntime Implementation)       │
@@ -116,7 +116,7 @@ if (response.isSuccess) {
 
 ### Memory Management Pattern
 
-```
+```text
 Dart Memory                WASM Linear Memory
     │                           │
     │ 1. Serialize              │

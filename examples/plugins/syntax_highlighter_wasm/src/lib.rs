@@ -17,7 +17,7 @@
 //!    - Orchestrates domain operations
 //!
 //! 3. **Infrastructure Layer** (`infrastructure/`)
-//!    - Tree-sitter adapters: TreeSitterParser, TreeSitterHighlighter
+//!    - Syntect adapters: SyntectParser, SyntectHighlighter
 //!    - Memory management: alloc, dealloc
 //!    - Implements domain interfaces
 //!
@@ -44,7 +44,7 @@ mod infrastructure;
 
 use domain::{Theme, Language};
 use application::{HighlightCodeUseCase, ParseRequest};
-use infrastructure::{TreeSitterParser, TreeSitterHighlighter, memory};
+use infrastructure::{SyntectParser, SyntectHighlighter, memory};
 
 // Re-export memory functions
 pub use infrastructure::memory::{alloc, dealloc};
@@ -237,8 +237,8 @@ fn handle_highlight_event(data: &HashMap<String, serde_json::Value>) -> u64 {
     let theme = unsafe { THEME.as_ref().unwrap() };
 
     // Create dependencies (Infrastructure layer)
-    let parser = TreeSitterParser::new();
-    let highlighter = TreeSitterHighlighter::new();
+    let parser = SyntectParser::new();
+    let highlighter = SyntectHighlighter::new();
 
     // Execute use case (Application layer)
     let use_case = HighlightCodeUseCase::new(parser, highlighter);

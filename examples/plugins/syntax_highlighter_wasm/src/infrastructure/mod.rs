@@ -4,9 +4,9 @@
 // Depends on Domain layer (implements interfaces).
 // Provides concrete implementations of domain services.
 
-pub mod tree_sitter;
+pub mod syntect;
 pub mod memory;
 
 // Re-export for convenience
-pub use tree_sitter::{TreeSitterParser, TreeSitterHighlighter};
+pub use syntect::{SyntectParser, SyntectHighlighter};
 pub use memory::{alloc, dealloc};

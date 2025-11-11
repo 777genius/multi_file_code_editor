@@ -57,6 +57,11 @@ class _SettingsDialogState extends State<SettingsDialog>
   int _connectionTimeout = 10;
   int _requestTimeout = 30;
 
+  // Validation errors
+  String? _urlError;
+  String? _connectionTimeoutError;
+  String? _requestTimeoutError;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +102,45 @@ class _SettingsDialogState extends State<SettingsDialog>
       _connectionTimeoutController.text = _connectionTimeout.toString();
       _requestTimeoutController.text = _requestTimeout.toString();
     });
+  }
+
+  bool _validateSettings() {
+    setState(() {
+      _urlError = null;
+      _connectionTimeoutError = null;
+      _requestTimeoutError = null;
+    });
+
+    bool isValid = true;
+
+    // Validate LSP Bridge URL
+    if (_lspBridgeUrl.isEmpty) {
+      setState(() => _urlError = 'URL cannot be empty');
+      isValid = false;
+    } else if (!_lspBridgeUrl.startsWith('ws://') && !_lspBridgeUrl.startsWith('wss://')) {
+      setState(() => _urlError = 'URL must start with ws:// or wss://');
+      isValid = false;
+    }
+
+    // Validate connection timeout
+    if (_connectionTimeout <= 0) {
+      setState(() => _connectionTimeoutError = 'Must be greater than 0');
+      isValid = false;
+    } else if (_connectionTimeout > 300) {
+      setState(() => _connectionTimeoutError = 'Cannot exceed 300 seconds');
+      isValid = false;
+    }
+
+    // Validate request timeout
+    if (_requestTimeout <= 0) {
+      setState(() => _requestTimeoutError = 'Must be greater than 0');
+      isValid = false;
+    } else if (_requestTimeout > 600) {
+      setState(() => _requestTimeoutError = 'Cannot exceed 600 seconds');
+      isValid = false;
+    }
+
+    return isValid;
   }
 
   Map<String, dynamic> _collectSettings() {
@@ -303,8 +347,12 @@ class _SettingsDialogState extends State<SettingsDialog>
           _buildTextFieldSetting(
             'LSP Bridge URL',
             _lspBridgeUrlController,
-            (value) => setState(() => _lspBridgeUrl = value),
+            (value) => setState(() {
+              _lspBridgeUrl = value;
+              _urlError = null; // Clear error on change
+            }),
             hint: 'ws://localhost:9999',
+            errorText: _urlError,
           ),
 
           const SizedBox(height: 16),
@@ -316,11 +364,15 @@ class _SettingsDialogState extends State<SettingsDialog>
             (value) {
               final parsed = int.tryParse(value);
               if (parsed != null) {
-                setState(() => _connectionTimeout = parsed);
+                setState(() {
+                  _connectionTimeout = parsed;
+                  _connectionTimeoutError = null; // Clear error on change
+                });
               }
             },
             hint: '10',
             keyboardType: TextInputType.number,
+            errorText: _connectionTimeoutError,
           ),
 
           const SizedBox(height: 16),
@@ -332,11 +384,15 @@ class _SettingsDialogState extends State<SettingsDialog>
             (value) {
               final parsed = int.tryParse(value);
               if (parsed != null) {
-                setState(() => _requestTimeout = parsed);
+                setState(() {
+                  _requestTimeout = parsed;
+                  _requestTimeoutError = null; // Clear error on change
+                });
               }
             },
             hint: '30',
             keyboardType: TextInputType.number,
+            errorText: _requestTimeoutError,
           ),
         ],
       ),
@@ -426,8 +482,10 @@ class _SettingsDialogState extends State<SettingsDialog>
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () {
-              widget.onSave?.call(_collectSettings());
-              Navigator.of(context).pop();
+              if (_validateSettings()) {
+                widget.onSave?.call(_collectSettings());
+                Navigator.of(context).pop();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF007ACC),
@@ -493,6 +551,7 @@ class _SettingsDialogState extends State<SettingsDialog>
     void Function(String) onChanged, {
     String? hint,
     TextInputType? keyboardType,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,18 +569,29 @@ class _SettingsDialogState extends State<SettingsDialog>
             hintStyle: TextStyle(
               color: const Color(0xFFCCCCCC).withOpacity(0.4),
             ),
+            errorText: errorText,
+            errorStyle: const TextStyle(
+              color: Color(0xFFF48771),
+              fontSize: 12,
+            ),
             filled: true,
             fillColor: const Color(0xFF252526),
             border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFF3E3E42)),
+              borderSide: BorderSide(
+                color: errorText != null ? const Color(0xFFF48771) : const Color(0xFF3E3E42),
+              ),
               borderRadius: BorderRadius.circular(4),
             ),
             enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFF3E3E42)),
+              borderSide: BorderSide(
+                color: errorText != null ? const Color(0xFFF48771) : const Color(0xFF3E3E42),
+              ),
               borderRadius: BorderRadius.circular(4),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFF007ACC)),
+              borderSide: BorderSide(
+                color: errorText != null ? const Color(0xFFF48771) : const Color(0xFF007ACC),
+              ),
               borderRadius: BorderRadius.circular(4),
             ),
           ),

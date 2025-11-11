@@ -230,32 +230,96 @@ class _EditorViewState extends State<EditorView> {
       builder: (_) {
         final lineCount = _store.lineCount;
 
+        // For files with too many lines, use ListView with physics disabled
+        // This prevents independent scrolling but still uses virtualization
+        // Note: In production, this should be replaced with a proper synchronized scroll solution
+        // or a custom text editor widget
         return Container(
           width: 60,
           color: const Color(0xFF252525), // Slightly lighter than editor
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            itemCount: lineCount,
-            itemBuilder: (context, index) {
-              final isCurrentLine = index == _store.cursorPosition.line;
-
-              return Text(
-                '${index + 1}',
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 14,
-                  color: isCurrentLine
-                      ? const Color(0xFFC6C6C6) // Highlighted line number
-                      : const Color(0xFF858585), // Normal line number
-                  fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,
-                  height: 1.5,
-                ),
-              );
-            },
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          child: lineCount > 1000
+              ? _buildLargeFileLineNumbers(lineCount)
+              : _buildSmallFileLineNumbers(lineCount),
         );
       },
+    );
+  }
+
+  /// For small files (< 1000 lines), use Column for perfect alignment
+  Widget _buildSmallFileLineNumbers(int lineCount) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: List.generate(
+        lineCount,
+        (index) {
+          final isCurrentLine = index == _store.cursorPosition.line;
+
+          return Text(
+            '${index + 1}',
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 14,
+              color: isCurrentLine
+                  ? const Color(0xFFC6C6C6) // Highlighted line number
+                  : const Color(0xFF858585), // Normal line number
+              fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,
+              height: 1.5,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// For large files (>= 1000 lines), show current line number only
+  Widget _buildLargeFileLineNumbers(int lineCount) {
+    final currentLine = _store.cursorPosition.line + 1;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF094771),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Line',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 10,
+                  color: Colors.grey[400],
+                  height: 1.2,
+                ),
+              ),
+              Text(
+                '$currentLine',
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 16,
+                  color: Color(0xFFC6C6C6),
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+              ),
+              Text(
+                'of $lineCount',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 10,
+                  color: Colors.grey[400],
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -56,8 +56,11 @@ class DiagnosticsPanel extends StatelessWidget {
             d.severity == DiagnosticSeverity.hint)
         .toList();
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    final panelHeight = (screenHeight * 0.3).clamp(150.0, 400.0);
+
     return Container(
-      height: 250,
+      height: panelHeight,
       decoration: const BoxDecoration(
         color: Color(0xFF1E1E1E), // VS Code dark
         border: Border(

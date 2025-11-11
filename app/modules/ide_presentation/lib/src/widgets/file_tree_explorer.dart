@@ -57,6 +57,8 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedPath;
   String _searchQuery = '';
+  bool _isLoading = false;
+  String? _loadingMessage;
 
   static final Set<String> _defaultExcluded = {
     'node_modules',
@@ -295,6 +297,11 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
   }
 
   void _deleteEntity(String entityPath) async {
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = 'Deleting...';
+    });
+
     try {
       final entity = FileSystemEntity.isDirectorySync(entityPath)
           ? Directory(entityPath)
@@ -308,10 +315,19 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
       await _loadDirectoryContents(parentPath);
 
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+          _loadingMessage = null;
+        });
       }
     } catch (e) {
       debugPrint('Error deleting entity: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadingMessage = null;
+        });
+      }
     }
   }
 
@@ -505,17 +521,44 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        // Search bar
-        _buildSearchBar(),
+        Column(
+          children: [
+            // Search bar
+            _buildSearchBar(),
 
-        // File tree
-        Expanded(
-          child: SingleChildScrollView(
-            child: _buildTree(widget.rootPath, indent: 0),
-          ),
+            // File tree
+            Expanded(
+              child: SingleChildScrollView(
+                child: _buildTree(widget.rootPath, indent: 0),
+              ),
+            ),
+          ],
         ),
+
+        // Loading overlay
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: Center(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      if (_loadingMessage != null) ...[
+                        const SizedBox(height: 16),
+                        Text(_loadingMessage!),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

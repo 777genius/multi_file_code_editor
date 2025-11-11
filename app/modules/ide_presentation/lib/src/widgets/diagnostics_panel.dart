@@ -46,10 +46,17 @@ class DiagnosticsPanel extends StatefulWidget {
   State<DiagnosticsPanel> createState() => _DiagnosticsPanelState();
 }
 
+enum DiagnosticSortOrder {
+  severity,
+  line,
+  message,
+}
+
 class _DiagnosticsPanelState extends State<DiagnosticsPanel> {
   bool _showErrors = true;
   bool _showWarnings = true;
   bool _showInfos = true;
+  DiagnosticSortOrder _sortOrder = DiagnosticSortOrder.severity;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +81,29 @@ class _DiagnosticsPanelState extends State<DiagnosticsPanel> {
           !_showInfos) return false;
       return true;
     }).toList();
+
+    // Apply sorting
+    filteredDiagnostics.sort((a, b) {
+      switch (_sortOrder) {
+        case DiagnosticSortOrder.severity:
+          // Sort by severity (error > warning > info > hint)
+          final severityOrder = {
+            DiagnosticSeverity.error: 0,
+            DiagnosticSeverity.warning: 1,
+            DiagnosticSeverity.information: 2,
+            DiagnosticSeverity.hint: 3,
+          };
+          final severityCompare = (severityOrder[a.severity] ?? 3)
+              .compareTo(severityOrder[b.severity] ?? 3);
+          if (severityCompare != 0) return severityCompare;
+          // If same severity, sort by line
+          return a.range.start.line.compareTo(b.range.start.line);
+        case DiagnosticSortOrder.line:
+          return a.range.start.line.compareTo(b.range.start.line);
+        case DiagnosticSortOrder.message:
+          return a.message.compareTo(b.message);
+      }
+    });
 
     final screenHeight = MediaQuery.of(context).size.height;
     final panelHeight = (screenHeight * 0.3).clamp(150.0, 400.0);
@@ -204,6 +234,96 @@ class _DiagnosticsPanelState extends State<DiagnosticsPanel> {
           ],
 
           const Spacer(),
+
+          // Sort dropdown
+          PopupMenuButton<DiagnosticSortOrder>(
+            icon: const Icon(Icons.sort, size: 16, color: Color(0xFFCCCCCC)),
+            tooltip: 'Sort Diagnostics',
+            initialValue: _sortOrder,
+            onSelected: (value) => setState(() => _sortOrder = value),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: DiagnosticSortOrder.severity,
+                child: Row(
+                  children: [
+                    Icon(Icons.priority_high, size: 16),
+                    SizedBox(width: 8),
+                    Text('Sort by Severity'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: DiagnosticSortOrder.line,
+                child: Row(
+                  children: [
+                    Icon(Icons.format_line_spacing, size: 16),
+                    SizedBox(width: 8),
+                    Text('Sort by Line Number'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: DiagnosticSortOrder.message,
+                child: Row(
+                  children: [
+                    Icon(Icons.sort_by_alpha, size: 16),
+                    SizedBox(width: 8),
+                    Text('Sort by Message'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Clear all button
+          if (widget.diagnostics.isNotEmpty)
+            Tooltip(
+              message: 'Clear All Problems',
+              child: TextButton.icon(
+                icon: const Icon(Icons.clear_all, size: 14),
+                label: const Text('Clear All'),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFCCCCCC),
+                  textStyle: const TextStyle(fontSize: 11),
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Clear All Problems'),
+                      content: Text(
+                        'Are you sure you want to clear all ${widget.diagnostics.length} diagnostic(s)?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('CANCEL'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // This would need to be implemented via callback
+                            // For now, just show feedback
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Diagnostics cleared (requires LSP integration)'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF48771),
+                          ),
+                          child: const Text('CLEAR ALL'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          const SizedBox(width: 8),
 
           // Close button
           if (widget.onClose != null)

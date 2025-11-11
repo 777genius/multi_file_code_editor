@@ -91,6 +91,8 @@ await wasmRuntime.loadPlugin(wasmPath);
 
 - Verify WASM file exists: `ls wasm/symbol_navigator.wasm`
 - Check WASM validation: `wasm-validate wasm/symbol_navigator.wasm`
+  - Note: Requires wabt (WebAssembly Binary Toolkit)
+  - Install: `brew install wabt` (macOS) or `apt install wabt` (Linux)
 - Review console for error messages
 
 ## Development Workflow

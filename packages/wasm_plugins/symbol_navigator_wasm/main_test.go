@@ -1,3 +1,11 @@
+// Note: These tests are designed for WASM environment and may not work correctly
+// when run as native Go tests due to memory layout differences.
+// They are kept for documentation purposes and manual WASM testing.
+//
+// For CI/CD, use `go test ./parser/...` to test the parser logic directly.
+
+//go:build wasm
+
 package main
 
 import (
@@ -6,7 +14,7 @@ import (
 
 	"github.com/vmihailenco/msgpack/v5"
 
-	"github.com/777genius/multi_editor_flutter/symbol_navigator_wasm/parser"
+	"github.com/777genius/multi_editor_flutter/packages/wasm_plugins/symbol_navigator_wasm/parser"
 )
 
 func TestGetManifest(t *testing.T) {

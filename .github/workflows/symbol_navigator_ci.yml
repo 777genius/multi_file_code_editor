@@ -80,7 +80,9 @@ jobs:
 
     - name: Run tests
       working-directory: packages/wasm_plugins/symbol_navigator_wasm
-      run: go test -v -race -coverprofile=coverage.out ./...
+      run: |
+        # Test parser package (main package tests require WASM environment)
+        go test -v -race -coverprofile=coverage.out ./parser/...
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

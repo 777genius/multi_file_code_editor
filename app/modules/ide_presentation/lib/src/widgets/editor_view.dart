@@ -233,28 +233,26 @@ class _EditorViewState extends State<EditorView> {
         return Container(
           width: 60,
           color: const Color(0xFF252525), // Slightly lighter than editor
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(
-              lineCount,
-              (index) {
-                final isCurrentLine = index == _store.cursorPosition.line;
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            itemCount: lineCount,
+            itemBuilder: (context, index) {
+              final isCurrentLine = index == _store.cursorPosition.line;
 
-                return Text(
-                  '${index + 1}',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    color: isCurrentLine
-                        ? const Color(0xFFC6C6C6) // Highlighted line number
-                        : const Color(0xFF858585), // Normal line number
-                    fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,
-                    height: 1.5,
-                  ),
-                );
-              },
-            ),
+              return Text(
+                '${index + 1}',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 14,
+                  color: isCurrentLine
+                      ? const Color(0xFFC6C6C6) // Highlighted line number
+                      : const Color(0xFF858585), // Normal line number
+                  fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,
+                  height: 1.5,
+                ),
+              );
+            },
           ),
         );
       },

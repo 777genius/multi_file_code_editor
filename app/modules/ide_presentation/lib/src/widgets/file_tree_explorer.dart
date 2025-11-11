@@ -329,6 +329,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _renameEntity(entityPath, value);
+          },
         ),
         actions: [
           TextButton(
@@ -344,7 +348,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _renameEntity(String oldPath, String newName) async {
@@ -383,6 +387,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _createFile(parentDir, value);
+          },
         ),
         actions: [
           TextButton(
@@ -398,7 +406,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _createFile(String parentDir, String fileName) async {
@@ -431,6 +439,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _createFolder(parentDir, value);
+          },
         ),
         actions: [
           TextButton(
@@ -446,7 +458,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _createFolder(String parentDir, String folderName) async {

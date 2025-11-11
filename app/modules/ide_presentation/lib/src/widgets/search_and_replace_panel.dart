@@ -258,21 +258,24 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
 
         // Match counter
         if (_searchController.text.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3C3C3C),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFF3E3E42)),
-            ),
-            child: Text(
-              _totalMatches > 0
-                  ? '${_currentMatchIndex + 1} of $_totalMatches'
-                  : 'No results',
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-                fontFamily: 'monospace',
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3C3C3C),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFF3E3E42)),
+              ),
+              child: Text(
+                _totalMatches > 0
+                    ? '${_currentMatchIndex + 1} of $_totalMatches'
+                    : 'No results',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),

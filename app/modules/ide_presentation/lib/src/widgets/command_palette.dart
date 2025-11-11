@@ -149,33 +149,42 @@ class _CommandPaletteState extends State<CommandPalette> {
     widget.onCommandExecuted?.call(command);
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
-        setState(() {
-          _selectedIndex = (_selectedIndex + 1) % _filteredCommands.length;
-        });
+        if (_filteredCommands.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex + 1) % _filteredCommands.length;
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.arrowUp:
-        setState(() {
-          _selectedIndex = (_selectedIndex - 1 + _filteredCommands.length) %
-                          _filteredCommands.length;
-        });
+        if (_filteredCommands.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex - 1 + _filteredCommands.length) %
+                            _filteredCommands.length;
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.enter:
         if (_filteredCommands.isNotEmpty) {
           _executeCommand(_filteredCommands[_selectedIndex]);
+          return KeyEventResult.handled;
         }
         break;
 
       case LogicalKeyboardKey.escape:
         Navigator.of(context).pop();
-        break;
+        return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -183,9 +192,9 @@ class _CommandPaletteState extends State<CommandPalette> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-      child: RawKeyboardListener(
+      child: Focus(
         focusNode: _keyboardFocusNode,
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600),
           decoration: BoxDecoration(

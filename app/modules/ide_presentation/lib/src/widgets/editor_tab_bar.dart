@@ -235,7 +235,7 @@ class _EditorTabBarState extends State<EditorTabBar> {
           _showTabContextMenu(context, index, details.globalPosition);
         },
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 200),
+          constraints: const BoxConstraints(minWidth: 80, maxWidth: 200),
           decoration: BoxDecoration(
             color: isActive
                 ? const Color(0xFF1E1E1E)

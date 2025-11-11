@@ -72,20 +72,26 @@ class _CompletionPopupState extends State<CompletionPopup> {
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final key = event.logicalKey;
 
     if (key == LogicalKeyboardKey.arrowDown) {
       _moveSelection(1);
+      return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowUp) {
       _moveSelection(-1);
-    } else if (key == LogicalKeyboardKey.enter) {
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.tab) {
       _selectCurrent();
+      return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.escape) {
       widget.onDismissed?.call();
+      return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
   }
 
   void _moveSelection(int delta) {
@@ -101,9 +107,11 @@ class _CompletionPopupState extends State<CompletionPopup> {
   }
 
   void _scrollToSelected() {
+    if (!_scrollController.hasClients) return;
+
     final itemHeight = 40.0;
     final selectedPosition = _selectedIndex * itemHeight;
-    final visibleHeight = 200.0; // Max height of popup
+    final visibleHeight = _scrollController.position.viewportDimension;
 
     if (selectedPosition < _scrollController.offset) {
       _scrollController.animateTo(
@@ -132,10 +140,7 @@ class _CompletionPopupState extends State<CompletionPopup> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _focusNode,
-      onKeyEvent: (node, event) {
-        _handleKeyEvent(event);
-        return KeyEventResult.handled;
-      },
+      onKeyEvent: _handleKeyEvent,
       child: Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(8),

@@ -42,6 +42,9 @@ class SettingsDialog extends StatefulWidget {
 class _SettingsDialogState extends State<SettingsDialog>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late TextEditingController _lspBridgeUrlController;
+  late TextEditingController _connectionTimeoutController;
+  late TextEditingController _requestTimeoutController;
 
   // Editor settings
   double _fontSize = 14.0;
@@ -59,6 +62,11 @@ class _SettingsDialogState extends State<SettingsDialog>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
+    // Initialize text controllers
+    _lspBridgeUrlController = TextEditingController(text: _lspBridgeUrl);
+    _connectionTimeoutController = TextEditingController(text: _connectionTimeout.toString());
+    _requestTimeoutController = TextEditingController(text: _requestTimeout.toString());
+
     // Load initial settings
     if (widget.initialSettings != null) {
       _loadSettings(widget.initialSettings!);
@@ -68,6 +76,9 @@ class _SettingsDialogState extends State<SettingsDialog>
   @override
   void dispose() {
     _tabController.dispose();
+    _lspBridgeUrlController.dispose();
+    _connectionTimeoutController.dispose();
+    _requestTimeoutController.dispose();
     super.dispose();
   }
 
@@ -80,6 +91,11 @@ class _SettingsDialogState extends State<SettingsDialog>
       _lspBridgeUrl = settings['lspBridgeUrl'] ?? 'ws://localhost:9999';
       _connectionTimeout = settings['connectionTimeout'] ?? 10;
       _requestTimeout = settings['requestTimeout'] ?? 30;
+
+      // Update text controllers
+      _lspBridgeUrlController.text = _lspBridgeUrl;
+      _connectionTimeoutController.text = _connectionTimeout.toString();
+      _requestTimeoutController.text = _requestTimeout.toString();
     });
   }
 
@@ -97,11 +113,15 @@ class _SettingsDialogState extends State<SettingsDialog>
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final dialogWidth = (screenSize.width * 0.85).clamp(400.0, 700.0);
+    final dialogHeight = (screenSize.height * 0.8).clamp(400.0, 600.0);
+
     return Dialog(
       backgroundColor: const Color(0xFF1E1E1E),
       child: Container(
-        width: 700,
-        height: 600,
+        width: dialogWidth,
+        height: dialogHeight,
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(8),
@@ -282,7 +302,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           // LSP Bridge URL
           _buildTextFieldSetting(
             'LSP Bridge URL',
-            _lspBridgeUrl,
+            _lspBridgeUrlController,
             (value) => setState(() => _lspBridgeUrl = value),
             hint: 'ws://localhost:9999',
           ),
@@ -292,7 +312,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           // Connection Timeout
           _buildTextFieldSetting(
             'Connection Timeout (seconds)',
-            _connectionTimeout.toString(),
+            _connectionTimeoutController,
             (value) {
               final parsed = int.tryParse(value);
               if (parsed != null) {
@@ -308,7 +328,7 @@ class _SettingsDialogState extends State<SettingsDialog>
           // Request Timeout
           _buildTextFieldSetting(
             'Request Timeout (seconds)',
-            _requestTimeout.toString(),
+            _requestTimeoutController,
             (value) {
               final parsed = int.tryParse(value);
               if (parsed != null) {
@@ -469,7 +489,7 @@ class _SettingsDialogState extends State<SettingsDialog>
 
   Widget _buildTextFieldSetting(
     String label,
-    String value,
+    TextEditingController controller,
     void Function(String) onChanged, {
     String? hint,
     TextInputType? keyboardType,
@@ -483,7 +503,7 @@ class _SettingsDialogState extends State<SettingsDialog>
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: TextEditingController(text: value),
+          controller: controller,
           style: const TextStyle(color: Color(0xFFCCCCCC)),
           decoration: InputDecoration(
             hintText: hint,

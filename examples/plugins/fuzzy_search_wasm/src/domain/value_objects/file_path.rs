@@ -18,11 +18,11 @@ impl FilePath {
             return Err("Path cannot be empty".to_string());
         }
 
-        // Extract file name
+        // Extract file name (support both Unix and Windows paths)
         let file_name = path
-            .rsplit('/')
-            .next()
-            .or_else(|| path.rsplit('\\').next())
+            .rsplit_once('/')
+            .or_else(|| path.rsplit_once('\\'))
+            .map(|(_, name)| name)
             .unwrap_or(&path)
             .to_string();
 

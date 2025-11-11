@@ -9,7 +9,9 @@
 /// - Follow RAII pattern
 #[no_mangle]
 pub extern "C" fn alloc(size: u32) -> *mut u8 {
-    let mut buf = Vec::with_capacity(size as usize);
+    // IMPORTANT: Create Vec with actual length, not just capacity
+    // This ensures memory is properly allocated and initialized
+    let mut buf = vec![0u8; size as usize];
     let ptr = buf.as_mut_ptr();
     std::mem::forget(buf); // Prevent Rust from deallocating
     ptr

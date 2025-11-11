@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+*.wasm
+
+# Go
+go.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,40 @@
+name: multi_editor_plugin_symbol_navigator
+description: Symbol navigator plugin with tree-sitter powered parsing for multiple languages
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core dependencies
+  multi_editor_core:
+    path: ../../multi_editor_core
+  multi_editor_plugins:
+    path: ../../multi_editor_plugins
+  multi_editor_plugin_base:
+    path: ../multi_editor_plugin_base
+
+  # WASM plugin system
+  flutter_plugin_system_core:
+    path: ../../../packages/flutter_plugin_system_core
+  flutter_plugin_system_wasm:
+    path: ../../../packages/flutter_plugin_system_wasm
+
+  # Functional programming
+  fpdart: ^1.1.0
+
+  # Code generation
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.8
+  freezed: ^2.4.7
+  json_serializable: ^6.7.1

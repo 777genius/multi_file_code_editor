@@ -124,50 +124,65 @@ class _AdvancedCompletionPopupState extends State<AdvancedCompletionPopup> {
     }
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
-        setState(() {
-          _selectedIndex = (_selectedIndex + 1) % _filteredCompletions.length;
-          _scrollToSelected();
-        });
+        if (_filteredCompletions.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex + 1) % _filteredCompletions.length;
+            _scrollToSelected();
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.arrowUp:
-        setState(() {
-          _selectedIndex = (_selectedIndex - 1 + _filteredCompletions.length) %
-                          _filteredCompletions.length;
-          _scrollToSelected();
-        });
+        if (_filteredCompletions.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex - 1 + _filteredCompletions.length) %
+                            _filteredCompletions.length;
+            _scrollToSelected();
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.enter:
       case LogicalKeyboardKey.tab:
         if (_filteredCompletions.isNotEmpty) {
           widget.onSelect(_filteredCompletions[_selectedIndex]);
+          return KeyEventResult.handled;
         }
         break;
 
       case LogicalKeyboardKey.escape:
         widget.onDismiss?.call();
-        break;
+        return KeyEventResult.handled;
 
       case LogicalKeyboardKey.pageDown:
-        setState(() {
-          _selectedIndex = (_selectedIndex + 10).clamp(0, _filteredCompletions.length - 1);
-          _scrollToSelected();
-        });
+        if (_filteredCompletions.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex + 10).clamp(0, _filteredCompletions.length - 1);
+            _scrollToSelected();
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.pageUp:
-        setState(() {
-          _selectedIndex = (_selectedIndex - 10).clamp(0, _filteredCompletions.length - 1);
-          _scrollToSelected();
-        });
+        if (_filteredCompletions.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex - 10).clamp(0, _filteredCompletions.length - 1);
+            _scrollToSelected();
+          });
+          return KeyEventResult.handled;
+        }
         break;
     }
+
+    return KeyEventResult.ignored;
   }
 
   void _scrollToSelected() {
@@ -205,14 +220,38 @@ class _AdvancedCompletionPopupState extends State<AdvancedCompletionPopup> {
       return const SizedBox.shrink();
     }
 
+    final screenSize = MediaQuery.of(context).size;
     final maxSize = widget.maxSize ?? const Size(400, 300);
+    const margin = 16.0;
+
+    // Calculate position with screen boundary checks
+    double left = widget.position.dx;
+    double top = widget.position.dy;
+
+    // Check right boundary
+    if (left + maxSize.width > screenSize.width - margin) {
+      left = screenSize.width - maxSize.width - margin;
+    }
+    // Check left boundary
+    if (left < margin) {
+      left = margin;
+    }
+
+    // Check bottom boundary
+    if (top + maxSize.height > screenSize.height - margin) {
+      top = screenSize.height - maxSize.height - margin;
+    }
+    // Check top boundary
+    if (top < margin) {
+      top = margin;
+    }
 
     return Positioned(
-      left: widget.position.dx,
-      top: widget.position.dy,
-      child: RawKeyboardListener(
+      left: left,
+      top: top,
+      child: Focus(
         focusNode: _keyboardFocusNode,
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
         child: Material(
           elevation: 8,
           borderRadius: BorderRadius.circular(4),

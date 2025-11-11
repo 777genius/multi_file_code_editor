@@ -57,6 +57,8 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedPath;
   String _searchQuery = '';
+  bool _isLoading = false;
+  String? _loadingMessage;
 
   static final Set<String> _defaultExcluded = {
     'node_modules',
@@ -295,6 +297,11 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
   }
 
   void _deleteEntity(String entityPath) async {
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = 'Deleting...';
+    });
+
     try {
       final entity = FileSystemEntity.isDirectorySync(entityPath)
           ? Directory(entityPath)
@@ -308,10 +315,19 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
       await _loadDirectoryContents(parentPath);
 
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+          _loadingMessage = null;
+        });
       }
     } catch (e) {
       debugPrint('Error deleting entity: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadingMessage = null;
+        });
+      }
     }
   }
 
@@ -329,6 +345,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _renameEntity(entityPath, value);
+          },
         ),
         actions: [
           TextButton(
@@ -344,7 +364,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _renameEntity(String oldPath, String newName) async {
@@ -383,6 +403,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _createFile(parentDir, value);
+          },
         ),
         actions: [
           TextButton(
@@ -398,7 +422,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _createFile(String parentDir, String fileName) async {
@@ -431,6 +455,10 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
             border: OutlineInputBorder(),
           ),
           autofocus: true,
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            _createFolder(parentDir, value);
+          },
         ),
         actions: [
           TextButton(
@@ -446,7 +474,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _createFolder(String parentDir, String folderName) async {
@@ -493,17 +521,44 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        // Search bar
-        _buildSearchBar(),
+        Column(
+          children: [
+            // Search bar
+            _buildSearchBar(),
 
-        // File tree
-        Expanded(
-          child: SingleChildScrollView(
-            child: _buildTree(widget.rootPath, indent: 0),
-          ),
+            // File tree
+            Expanded(
+              child: SingleChildScrollView(
+                child: _buildTree(widget.rootPath, indent: 0),
+              ),
+            ),
+          ],
         ),
+
+        // Loading overlay
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: Center(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      if (_loadingMessage != null) ...[
+                        const SizedBox(height: 16),
+                        Text(_loadingMessage!),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -606,17 +661,20 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
     final name = path.basename(entityPath);
     final isSelected = _selectedPath == entityPath;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          if (isDirectory) {
-            _toggleDirectory(entityPath);
-          }
-          _selectPath(entityPath);
-        },
-        onSecondaryTapDown: (details) {
-          _showContextMenu(context, entityPath, details.globalPosition);
+    return Tooltip(
+      message: entityPath,
+      waitDuration: const Duration(milliseconds: 500),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            if (isDirectory) {
+              _toggleDirectory(entityPath);
+            }
+            _selectPath(entityPath);
+          },
+          onSecondaryTapDown: (details) {
+            _showContextMenu(context, entityPath, details.globalPosition);
         },
         child: Container(
           padding: EdgeInsets.only(
@@ -656,6 +714,7 @@ class _FileTreeExplorerState extends State<FileTreeExplorer> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

@@ -72,20 +72,26 @@ class _CompletionPopupState extends State<CompletionPopup> {
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final key = event.logicalKey;
 
     if (key == LogicalKeyboardKey.arrowDown) {
       _moveSelection(1);
+      return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowUp) {
       _moveSelection(-1);
-    } else if (key == LogicalKeyboardKey.enter) {
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.tab) {
       _selectCurrent();
+      return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.escape) {
       widget.onDismissed?.call();
+      return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
   }
 
   void _moveSelection(int delta) {
@@ -101,20 +107,26 @@ class _CompletionPopupState extends State<CompletionPopup> {
   }
 
   void _scrollToSelected() {
+    if (!_scrollController.hasClients) return;
+    if (widget.completions.items.isEmpty) return;
+
     final itemHeight = 40.0;
     final selectedPosition = _selectedIndex * itemHeight;
-    final visibleHeight = 200.0; // Max height of popup
+    final visibleHeight = _scrollController.position.viewportDimension;
 
     if (selectedPosition < _scrollController.offset) {
+      // Scroll up - ensure not negative
       _scrollController.animateTo(
-        selectedPosition,
+        selectedPosition.clamp(0.0, double.infinity),
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOut,
       );
     } else if (selectedPosition + itemHeight >
         _scrollController.offset + visibleHeight) {
+      // Scroll down - ensure target is not negative
+      final targetScroll = selectedPosition + itemHeight - visibleHeight;
       _scrollController.animateTo(
-        selectedPosition + itemHeight - visibleHeight,
+        targetScroll.clamp(0.0, _scrollController.position.maxScrollExtent),
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOut,
       );
@@ -132,10 +144,7 @@ class _CompletionPopupState extends State<CompletionPopup> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _focusNode,
-      onKeyEvent: (node, event) {
-        _handleKeyEvent(event);
-        return KeyEventResult.handled;
-      },
+      onKeyEvent: _handleKeyEvent,
       child: Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(8),

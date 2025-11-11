@@ -43,9 +43,24 @@ class HoverInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    const maxWidth = 500.0;
+    const maxHeight = 300.0;
+    const margin = 16.0;
+
+    // Calculate position with screen boundary checks using clamp
+    final left = position.dx.clamp(
+      margin,
+      screenSize.width - maxWidth - margin,
+    );
+    final top = position.dy.clamp(
+      margin,
+      screenSize.height - maxHeight - margin,
+    );
+
     return Positioned(
-      left: position.dx,
-      top: position.dy,
+      left: left,
+      top: top,
       child: GestureDetector(
         onTap: onDismiss,
         child: Material(
@@ -53,8 +68,8 @@ class HoverInfoWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: Container(
             constraints: const BoxConstraints(
-              maxWidth: 500,
-              maxHeight: 300,
+              maxWidth: maxWidth,
+              maxHeight: maxHeight,
             ),
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E), // VS Code dark

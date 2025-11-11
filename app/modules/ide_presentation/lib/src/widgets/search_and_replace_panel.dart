@@ -62,6 +62,7 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
 
   int _currentMatchIndex = 0;
   int _totalMatches = 0;
+  String? _regexError;
 
   final List<String> _searchHistory = [];
 
@@ -94,9 +95,26 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
       setState(() {
         _totalMatches = 0;
         _currentMatchIndex = 0;
+        _regexError = null;
       });
       widget.onSearchResult?.call(SearchResults.empty());
       return;
+    }
+
+    // Validate regex pattern if regex mode is enabled
+    if (_useRegex) {
+      try {
+        RegExp(query, caseSensitive: _caseSensitive);
+        setState(() => _regexError = null);
+      } catch (e) {
+        setState(() {
+          _regexError = e.toString().replaceFirst('FormatException: ', '');
+          _totalMatches = 0;
+          _currentMatchIndex = 0;
+        });
+        widget.onSearchResult?.call(SearchResults.empty());
+        return;
+      }
     }
 
     // Add to history
@@ -206,6 +224,10 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
           // Options row
           const SizedBox(height: 8),
           _buildOptionsRow(),
+
+          // Keyboard shortcuts hint (if no regex error)
+          if (_regexError == null && _searchController.text.isNotEmpty)
+            _buildKeyboardHints(),
         ],
       ),
     );
@@ -241,11 +263,32 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: const BorderSide(color: Color(0xFF3E3E42)),
+                borderSide: BorderSide(
+                  color: _regexError != null
+                      ? const Color(0xFFF48771)
+                      : const Color(0xFF3E3E42),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: const BorderSide(color: Color(0xFF007ACC)),
+                borderSide: BorderSide(
+                  color: _regexError != null
+                      ? const Color(0xFFF48771)
+                      : const Color(0xFF007ACC),
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: const BorderSide(color: Color(0xFFF48771)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: const BorderSide(color: Color(0xFFF48771)),
+              ),
+              errorText: _regexError,
+              errorStyle: const TextStyle(
+                color: Color(0xFFF48771),
+                fontSize: 11,
               ),
               filled: true,
               fillColor: const Color(0xFF3C3C3C),
@@ -258,21 +301,24 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
 
         // Match counter
         if (_searchController.text.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3C3C3C),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFF3E3E42)),
-            ),
-            child: Text(
-              _totalMatches > 0
-                  ? '${_currentMatchIndex + 1} of $_totalMatches'
-                  : 'No results',
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-                fontFamily: 'monospace',
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3C3C3C),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFF3E3E42)),
+              ),
+              child: Text(
+                _totalMatches > 0
+                    ? '${_currentMatchIndex + 1} of $_totalMatches'
+                    : 'No results',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
@@ -424,7 +470,17 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
           label: '.*',
           tooltip: 'Use Regular Expression',
           isActive: _useRegex,
-          onPressed: () => setState(() => _useRegex = !_useRegex),
+          onPressed: () {
+            setState(() {
+              _useRegex = !_useRegex;
+              // Clear regex error when toggling off regex mode
+              if (!_useRegex) {
+                _regexError = null;
+              }
+            });
+            // Re-run search with new mode
+            _performSearch();
+          },
         ),
 
         const SizedBox(width: 16),
@@ -479,6 +535,74 @@ class _SearchAndReplacePanelState extends State<SearchAndReplacePanel> {
               _searchFocusNode.requestFocus();
             },
           ),
+      ],
+    );
+  }
+
+  Widget _buildKeyboardHints() {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2D2D30),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF3E3E42)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.keyboard,
+            size: 14,
+            color: Color(0xFF007ACC),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                _buildShortcutHint('Enter', 'Next match'),
+                _buildShortcutHint('Shift+Enter', 'Previous'),
+                _buildShortcutHint('Esc', 'Close'),
+                if (_showReplace)
+                  _buildShortcutHint('Ctrl+H', 'Replace'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShortcutHint(String keys, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3E3E42),
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(color: const Color(0xFF555555)),
+          ),
+          child: Text(
+            keys,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 11,
+          ),
+        ),
       ],
     );
   }

@@ -149,33 +149,42 @@ class _CommandPaletteState extends State<CommandPalette> {
     widget.onCommandExecuted?.call(command);
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
-        setState(() {
-          _selectedIndex = (_selectedIndex + 1) % _filteredCommands.length;
-        });
+        if (_filteredCommands.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex + 1) % _filteredCommands.length;
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.arrowUp:
-        setState(() {
-          _selectedIndex = (_selectedIndex - 1 + _filteredCommands.length) %
-                          _filteredCommands.length;
-        });
+        if (_filteredCommands.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex - 1 + _filteredCommands.length) %
+                            _filteredCommands.length;
+          });
+          return KeyEventResult.handled;
+        }
         break;
 
       case LogicalKeyboardKey.enter:
         if (_filteredCommands.isNotEmpty) {
           _executeCommand(_filteredCommands[_selectedIndex]);
+          return KeyEventResult.handled;
         }
         break;
 
       case LogicalKeyboardKey.escape:
         Navigator.of(context).pop();
-        break;
+        return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -183,9 +192,9 @@ class _CommandPaletteState extends State<CommandPalette> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-      child: RawKeyboardListener(
+      child: Focus(
         focusNode: _keyboardFocusNode,
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600),
           decoration: BoxDecoration(
@@ -400,34 +409,187 @@ class _CommandPaletteState extends State<CommandPalette> {
   }
 
   Widget _buildEmptyState() {
+    final hasSearchQuery = _searchController.text.isNotEmpty;
+
     return Container(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 48,
-            color: Colors.grey[600],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No commands found',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+      padding: const EdgeInsets.all(32),
+      constraints: const BoxConstraints(maxHeight: 400),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon and message
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    hasSearchQuery ? Icons.search_off : Icons.lightbulb_outline,
+                    size: 48,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    hasSearchQuery
+                        ? 'No commands found'
+                        : 'Quick Actions',
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    hasSearchQuery
+                        ? 'Try a different search query'
+                        : 'Type to search or try these common commands',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try a different search query',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-        ],
+
+            if (!hasSearchQuery) ...[
+              const SizedBox(height: 24),
+
+              // Popular commands suggestions
+              _buildSuggestionSection(
+                title: 'Popular Commands',
+                icon: Icons.star_outline,
+                suggestions: [
+                  ('Open File', 'Ctrl+O'),
+                  ('Save', 'Ctrl+S'),
+                  ('Format Document', 'Shift+Alt+F'),
+                  ('Go to Line', 'Ctrl+G'),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // File operations
+              _buildSuggestionSection(
+                title: 'File Operations',
+                icon: Icons.folder_outlined,
+                suggestions: [
+                  ('New File', 'Ctrl+N'),
+                  ('Save As...', 'Ctrl+Shift+S'),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // LSP features
+              _buildSuggestionSection(
+                title: 'Code Intelligence',
+                icon: Icons.code,
+                suggestions: [
+                  ('Find References', 'Shift+F12'),
+                  ('Rename Symbol', 'F2'),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Keyboard shortcuts tip
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2D2D30),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFF3E3E42)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.keyboard,
+                      size: 20,
+                      color: Color(0xFF007ACC),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Tip: Use ↑ ↓ to navigate, Enter to execute, Esc to close',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildSuggestionSection({
+    required String title,
+    required IconData icon,
+    required List<(String, String)> suggestions,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.grey[500]),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...suggestions.map((suggestion) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    suggestion.$1,
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3E3E42),
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: const Color(0xFF555555)),
+                  ),
+                  child: Text(
+                    suggestion.$2,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 

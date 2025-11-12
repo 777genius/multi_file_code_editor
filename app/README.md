@@ -104,11 +104,43 @@ class LspSessionService {
 
 #### **lsp_infrastructure** (Infrastructure Layer)
 - **Purpose:** LSP client implementation (WebSocket, JSON-RPC)
-- **Location:** `app/modules/lsp_infrastructure` (to be created)
+- **Location:** `app/modules/lsp_infrastructure`
 
 ```dart
 class WebSocketLspClientRepository implements ILspClientRepository {
   // Communicates with Rust LSP Bridge via WebSocket
+}
+```
+
+### Language-Specific Enhancement Modules
+
+#### **dart_ide_enhancements** (Application Layer)
+- **Purpose:** Dart/Flutter-specific IDE tools and workflows
+- **Features:** pub commands, package management, analysis, formatting
+- **Dependencies:** editor_core, lsp_domain, lsp_application
+- **Location:** `app/modules/dart_ide_enhancements`
+
+```dart
+class PubCommands {
+  Future<Either<String, String>> pubGet();
+  Future<Either<String, String>> addPackage({required String packageName});
+  Future<Either<String, String>> analyze();
+  // ... more Dart-specific commands
+}
+```
+
+#### **js_ts_ide_enhancements** (Application Layer)
+- **Purpose:** JavaScript/TypeScript-specific IDE tools and workflows
+- **Features:** npm/yarn/pnpm commands, package management, script runner
+- **Dependencies:** editor_core, lsp_domain, lsp_application
+- **Location:** `app/modules/js_ts_ide_enhancements`
+
+```dart
+class NpmCommands {
+  Future<Either<String, String>> install();
+  Future<Either<String, String>> addPackage({required String packageName});
+  Future<Either<String, String>> runScript({required String scriptName});
+  // ... more npm/yarn/pnpm commands
 }
 ```
 
@@ -206,15 +238,17 @@ melos run analyze
 melos run test
 ```
 
-## 🎯 Next Steps
+## 🎯 Status
 
 1. ✅ Create editor_core (Domain)
 2. ✅ Create editor_monaco (Adapter)
 3. ✅ Create lsp_domain (Domain)
-4. ⏳ Create lsp_application (Use Cases)
-5. ⏳ Create lsp_infrastructure (LSP Client)
-6. ⏳ Create Rust LSP Bridge server
-7. ⏳ Create main IDE application
+4. ✅ Create lsp_application (Use Cases)
+5. ✅ Create lsp_infrastructure (LSP Client)
+6. ✅ Create Rust LSP Bridge server
+7. ✅ Create language-specific enhancement modules (Dart, JS/TS)
+8. ⏳ Complete main IDE application UI
+9. ⏳ Add more language enhancements (Python, Rust, etc.)
 
 ---
 

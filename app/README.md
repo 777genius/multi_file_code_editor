@@ -144,6 +144,29 @@ class NpmCommands {
 }
 ```
 
+### Performance-Critical Enhancement Modules
+
+#### **minimap_enhancement** (Application Layer + Rust WASM)
+- **Purpose:** High-performance code minimap visualization (VSCode-like)
+- **Features:** Visual file overview, click navigation, viewport indicator
+- **Technology:** Dart UI + Rust WASM for performance (10-100x faster)
+- **Dependencies:** editor_core
+- **Location:** `app/modules/minimap_enhancement`
+
+```dart
+class MinimapService {
+  Future<Either<String, MinimapData>> generateMinimap({
+    required String sourceCode,
+    MinimapConfig config,
+  });
+}
+
+// Rust WASM backend for CPU-intensive parsing
+// - 10,000 lines: 10ms (Rust) vs 100ms (Dart)
+// - Real-time updates on every keystroke
+// - Smart sampling for 50k+ line files
+```
+
 ## 🔑 Key Architectural Principles
 
 ### 1. **Dependency Inversion Principle (DIP)**
@@ -247,8 +270,9 @@ melos run test
 5. ✅ Create lsp_infrastructure (LSP Client)
 6. ✅ Create Rust LSP Bridge server
 7. ✅ Create language-specific enhancement modules (Dart, JS/TS)
-8. ⏳ Complete main IDE application UI
-9. ⏳ Add more language enhancements (Python, Rust, etc.)
+8. ✅ Create performance-critical enhancements (Minimap with Rust WASM)
+9. ⏳ Complete main IDE application UI
+10. ⏳ Add more enhancements (Global Search, Git Integration, Terminal)
 
 ---
 

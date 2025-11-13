@@ -338,7 +338,7 @@ class _GitPanelState extends ConsumerState<GitPanel> {
           ),
           IconButton(
             icon: const Icon(Icons.more_vert, size: 18),
-            onPressed: () => _showFileMenu(context, change),
+            onPressed: () => _showFileMenu(context, change, isStaged),
           ),
         ],
       ),
@@ -347,25 +347,34 @@ class _GitPanelState extends ConsumerState<GitPanel> {
   }
 
   Widget _buildStatusIcon(BuildContext context, FileStatus status) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final addColor = isDark ? const Color(0xFF8FD9A8) : const Color(0xFF0F6D31);
+    final modifyColor = colorScheme.primary;
+    final deleteColor = isDark ? const Color(0xFFFF8A8A) : const Color(0xFFB71C1C);
+    final warningColor = isDark ? const Color(0xFFFFA726) : const Color(0xFFE65100);
+
     return status.when(
       unmodified: () => Icon(Icons.check, size: 16,
-          color: Theme.of(context).colorScheme.outline),
+          color: colorScheme.outline),
       added: () => Icon(Icons.add_circle, size: 16,
-          color: Colors.green),
+          color: addColor),
       modified: () => Icon(Icons.edit, size: 16,
-          color: Colors.blue),
+          color: modifyColor),
       deleted: () => Icon(Icons.delete, size: 16,
-          color: Colors.red),
+          color: deleteColor),
       renamed: () => Icon(Icons.drive_file_rename_outline, size: 16,
-          color: Colors.orange),
+          color: warningColor),
       copied: () => Icon(Icons.copy, size: 16,
-          color: Colors.orange),
+          color: warningColor),
       untracked: () => Icon(Icons.help_outline, size: 16,
-          color: Colors.grey),
+          color: colorScheme.outline),
       ignored: () => Icon(Icons.block, size: 16,
-          color: Colors.grey),
+          color: colorScheme.outlineVariant),
       conflicted: () => Icon(Icons.warning, size: 16,
-          color: Colors.red),
+          color: deleteColor),
     );
   }
 
@@ -416,7 +425,7 @@ class _GitPanelState extends ConsumerState<GitPanel> {
     );
   }
 
-  void _showFileMenu(BuildContext context, FileChange change) {
+  void _showFileMenu(BuildContext context, FileChange change, bool isStaged) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Column(
@@ -427,7 +436,7 @@ class _GitPanelState extends ConsumerState<GitPanel> {
             title: const Text('View Diff'),
             onTap: () {
               Navigator.pop(context);
-              _openDiff(change.filePath, change.isStaged);
+              _openDiff(change.filePath, isStaged);
             },
           ),
           ListTile(

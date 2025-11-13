@@ -63,7 +63,12 @@ class DiffState {
   bool get hasError => error != null;
   int get totalFiles => fileDiffs.length;
 
-  int get totalAdditions {
+  // Cache statistics for performance
+  late final int totalAdditions = _calculateAdditions();
+  late final int totalDeletions = _calculateDeletions();
+  late final int totalChanges = totalAdditions + totalDeletions;
+
+  int _calculateAdditions() {
     var count = 0;
     for (final hunks in fileDiffs.values) {
       for (final hunk in hunks) {
@@ -73,7 +78,7 @@ class DiffState {
     return count;
   }
 
-  int get totalDeletions {
+  int _calculateDeletions() {
     var count = 0;
     for (final hunks in fileDiffs.values) {
       for (final hunk in hunks) {
@@ -181,11 +186,11 @@ class DiffNotifier extends _$DiffNotifier {
         );
       },
       (hunks) {
-        final fileDiffs = Map<String, List<DiffHunk>>.from(state.fileDiffs);
-        fileDiffs[filePath] = hunks;
+        // Only create new map if necessary (immutable update)
+        final updatedDiffs = {...state.fileDiffs, filePath: hunks};
 
         state = state.copyWith(
-          fileDiffs: fileDiffs,
+          fileDiffs: updatedDiffs,
           isLoading: false,
           clearError: true,
           selectedFile: filePath,

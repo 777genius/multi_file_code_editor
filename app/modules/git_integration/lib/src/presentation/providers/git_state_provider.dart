@@ -424,13 +424,11 @@ class GitRepositoryNotifier extends _$GitRepositoryNotifier {
 
   /// Toggle file selection
   void toggleFileSelection(FileChange file) {
-    final selected = List<FileChange>.from(state.selectedFiles);
-    if (selected.contains(file)) {
-      selected.remove(file);
-    } else {
-      selected.add(file);
-    }
-    state = state.copyWith(selectedFiles: selected);
+    final selected = state.selectedFiles;
+    final updated = selected.contains(file)
+        ? selected.where((f) => f != file).toList()
+        : [...selected, file];
+    state = state.copyWith(selectedFiles: updated);
   }
 
   /// Clear file selection

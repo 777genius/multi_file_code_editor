@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
@@ -27,10 +28,40 @@ class DiffViewer extends ConsumerStatefulWidget {
 
 class _DiffViewerState extends ConsumerState<DiffViewer> {
   final _scrollController = ScrollController();
+  final _scrollControllerOld = ScrollController();
+  final _scrollControllerNew = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Sync scroll controllers for side-by-side view
+    _scrollControllerOld.addListener(_syncScrollFromOld);
+    _scrollControllerNew.addListener(_syncScrollFromNew);
+  }
+
+  bool _isSyncing = false;
+
+  void _syncScrollFromOld() {
+    if (_isSyncing) return;
+    _isSyncing = true;
+    _scrollControllerNew.jumpTo(_scrollControllerOld.offset);
+    _isSyncing = false;
+  }
+
+  void _syncScrollFromNew() {
+    if (_isSyncing) return;
+    _isSyncing = true;
+    _scrollControllerOld.jumpTo(_scrollControllerNew.offset);
+    _isSyncing = false;
+  }
 
   @override
   void dispose() {
+    _scrollControllerOld.removeListener(_syncScrollFromOld);
+    _scrollControllerNew.removeListener(_syncScrollFromNew);
     _scrollController.dispose();
+    _scrollControllerOld.dispose();
+    _scrollControllerNew.dispose();
     super.dispose();
   }
 
@@ -161,7 +192,7 @@ class _DiffViewerState extends ConsumerState<DiffViewer> {
 
   Widget _buildOldVersion(BuildContext context, List<DiffHunk> hunks) {
     return ListView.builder(
-      controller: _scrollController,
+      controller: _scrollControllerOld,
       itemCount: hunks.length,
       itemBuilder: (context, index) {
         final hunk = hunks[index];
@@ -185,6 +216,7 @@ class _DiffViewerState extends ConsumerState<DiffViewer> {
 
   Widget _buildNewVersion(BuildContext context, List<DiffHunk> hunks) {
     return ListView.builder(
+      controller: _scrollControllerNew,
       itemCount: hunks.length,
       itemBuilder: (context, index) {
         final hunk = hunks[index];
@@ -252,9 +284,16 @@ class _DiffViewerState extends ConsumerState<DiffViewer> {
     Color? textColor;
     String lineNumberText = '';
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (line.type == DiffLineType.added) {
-      backgroundColor = Colors.green.withOpacity(0.2);
-      textColor = Colors.green[900];
+      backgroundColor = isDark
+          ? const Color(0xFF1B4D2C) // Dark green background
+          : const Color(0xFFD4F4DD); // Light green background
+      textColor = isDark
+          ? const Color(0xFF8FD9A8) // Light green text on dark
+          : const Color(0xFF0F6D31); // Dark green text on light
       if (isUnified) {
         lineNumberText =
             '    ${line.newLineNumber.toNullable() ?? ""}';
@@ -262,8 +301,12 @@ class _DiffViewerState extends ConsumerState<DiffViewer> {
         lineNumberText = '${line.newLineNumber.toNullable() ?? ""}';
       }
     } else if (line.type == DiffLineType.removed) {
-      backgroundColor = Colors.red.withOpacity(0.2);
-      textColor = Colors.red[900];
+      backgroundColor = isDark
+          ? const Color(0xFF5C1F1F) // Dark red background
+          : const Color(0xFFFFC1C1); // Light red background
+      textColor = isDark
+          ? const Color(0xFFFF8A8A) // Light red text on dark
+          : const Color(0xFFB71C1C); // Dark red text on light
       if (isUnified) {
         lineNumberText =
             '${line.oldLineNumber.toNullable() ?? ""}    ';
@@ -365,41 +408,87 @@ class _DiffViewerState extends ConsumerState<DiffViewer> {
     );
   }
 
-  String? _getLanguageFromExtension(String extension) {
-    const languageMap = {
-      'dart': 'dart',
-      'js': 'javascript',
-      'ts': 'typescript',
-      'jsx': 'javascript',
-      'tsx': 'typescript',
-      'py': 'python',
-      'java': 'java',
-      'kt': 'kotlin',
-      'swift': 'swift',
-      'rs': 'rust',
-      'go': 'go',
-      'cpp': 'cpp',
-      'c': 'c',
-      'cs': 'csharp',
-      'rb': 'ruby',
-      'php': 'php',
-      'html': 'xml',
-      'xml': 'xml',
-      'json': 'json',
-      'yaml': 'yaml',
-      'yml': 'yaml',
-      'md': 'markdown',
-      'sh': 'bash',
-      'sql': 'sql',
-      'css': 'css',
-      'scss': 'scss',
-    };
+  // Cache language map as static const for better performance
+  static const _languageMap = {
+    'dart': 'dart',
+    'js': 'javascript',
+    'ts': 'typescript',
+    'jsx': 'javascript',
+    'tsx': 'typescript',
+    'py': 'python',
+    'java': 'java',
+    'kt': 'kotlin',
+    'swift': 'swift',
+    'rs': 'rust',
+    'go': 'go',
+    'cpp': 'cpp',
+    'c': 'c',
+    'cs': 'csharp',
+    'rb': 'ruby',
+    'php': 'php',
+    'html': 'xml',
+    'xml': 'xml',
+    'json': 'json',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'md': 'markdown',
+    'sh': 'bash',
+    'sql': 'sql',
+    'css': 'css',
+    'scss': 'scss',
+  };
 
-    return languageMap[extension.toLowerCase()];
+  // Cache language detection result per file
+  String? _cachedLanguage;
+
+  String? _getLanguageFromExtension(String extension) {
+    _cachedLanguage ??= _languageMap[extension.toLowerCase()];
+    return _cachedLanguage;
   }
 
-  void _copyDiff() {
-    // TODO: Implement copy diff to clipboard
+  Future<void> _copyDiff() async {
+    final diffState = ref.read(diffNotifierProvider);
+    final hunks = widget.hunks ?? diffState.selectedDiff ?? [];
+
+    if (hunks.isEmpty) return;
+
+    // Build diff text in unified format
+    final buffer = StringBuffer();
+
+    if (widget.filePath != null) {
+      buffer.writeln('--- a/${widget.filePath}');
+      buffer.writeln('+++ b/${widget.filePath}');
+    }
+
+    for (final hunk in hunks) {
+      buffer.writeln(hunk.header);
+      for (final line in hunk.lines) {
+        buffer.writeln('${line.prefix}${line.content}');
+      }
+    }
+
+    // Copy to clipboard
+    try {
+      await Clipboard.setData(ClipboardData(text: buffer.toString()));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Diff copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to copy: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -415,6 +504,11 @@ class DiffStatistics extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final addColor = isDark ? const Color(0xFF8FD9A8) : const Color(0xFF0F6D31);
+    final removeColor = isDark ? const Color(0xFFFF8A8A) : const Color(0xFFB71C1C);
+
     return Container(
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -424,21 +518,21 @@ class DiffStatistics extends ConsumerWidget {
             context,
             icon: Icons.add,
             count: stats.additions,
-            color: Colors.green,
+            color: addColor,
           ),
           const SizedBox(width: 16),
           _buildStat(
             context,
             icon: Icons.remove,
             count: stats.deletions,
-            color: Colors.red,
+            color: removeColor,
           ),
           const SizedBox(width: 16),
           _buildStat(
             context,
             icon: Icons.timeline,
             count: stats.changes,
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
           ),
         ],
       ),

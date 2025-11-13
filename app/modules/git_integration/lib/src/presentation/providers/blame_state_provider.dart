@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:get_it/get_it.dart';
@@ -7,6 +8,23 @@ import '../../application/services/blame_service.dart';
 import 'git_state_provider.dart';
 
 part 'blame_state_provider.g.dart';
+
+/// Blame tooltip data
+class BlameTooltip {
+  final String commitHash;
+  final String author;
+  final DateTime date;
+  final String message;
+  final int lineNumber;
+
+  const BlameTooltip({
+    required this.commitHash,
+    required this.author,
+    required this.date,
+    required this.message,
+    required this.lineNumber,
+  });
+}
 
 /// Blame state
 class BlameState {
@@ -179,8 +197,8 @@ class BlameNotifier extends _$BlameNotifier {
     );
   }
 
-  /// Get heat map color for line
-  int? getHeatMapColor(int lineNumber) {
+  /// Get heat map color for line based on age
+  Color? getHeatMapColor(int lineNumber, {required bool isDarkMode}) {
     final heatMap = state.heatMap;
     if (heatMap == null || lineNumber >= heatMap.length) {
       return null;
@@ -189,19 +207,27 @@ class BlameNotifier extends _$BlameNotifier {
     final age = heatMap[lineNumber];
 
     // Color gradient based on age (in days)
-    // 0-7 days: Green (fresh)
-    // 7-30 days: Yellow (recent)
-    // 30-90 days: Orange (aging)
-    // 90+ days: Red (old)
-
+    // Theme-aware colors for better visibility
     if (age <= 7) {
-      return 0xFF4CAF50; // Green
+      // Fresh (0-7 days): Green
+      return isDarkMode
+          ? const Color(0xFF4CAF50)
+          : const Color(0xFF81C784);
     } else if (age <= 30) {
-      return 0xFFFFEB3B; // Yellow
+      // Recent (7-30 days): Yellow
+      return isDarkMode
+          ? const Color(0xFFFFEB3B)
+          : const Color(0xFFFFF176);
     } else if (age <= 90) {
-      return 0xFFFF9800; // Orange
+      // Aging (30-90 days): Orange
+      return isDarkMode
+          ? const Color(0xFFFF9800)
+          : const Color(0xFFFFB74D);
     } else {
-      return 0xFFF44336; // Red
+      // Old (90+ days): Red
+      return isDarkMode
+          ? const Color(0xFFF44336)
+          : const Color(0xFFE57373);
     }
   }
 

@@ -75,9 +75,14 @@ class GitCommandAdapter {
           .transform(utf8.decoder)
           .fold<String>('', (previous, element) => previous + element);
 
-      // Wait for completion with timeout
+      // Wait for completion with timeout (applies to ALL operations)
       final timeoutDuration = timeout ?? defaultTimeout;
-      final exitCode = await process.exitCode.timeout(
+
+      final results = await Future.wait([
+        process.exitCode.then((code) => code),
+        stdoutFuture,
+        stderrFuture,
+      ]).timeout(
         timeoutDuration,
         onTimeout: () {
           // Kill the process on timeout
@@ -89,8 +94,9 @@ class GitCommandAdapter {
         },
       );
 
-      final stdout = await stdoutFuture;
-      final stderr = await stderrFuture;
+      final exitCode = results[0] as int;
+      final stdout = results[1] as String;
+      final stderr = results[2] as String;
 
       final result = GitCommandResult(
         exitCode: exitCode,

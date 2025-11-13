@@ -88,7 +88,9 @@ class InlayHintsService {
     if (!forceRefresh) {
       final cached = _getCachedHints(documentUri, range);
       if (cached != null) {
-        return right(cached);
+        // IMPORTANT: Always apply filter when returning from cache
+        // This ensures settings changes (show/hide type hints) take effect immediately
+        return right(_filterHints(cached));
       }
     }
 
@@ -106,11 +108,11 @@ class InlayHintsService {
         );
 
         return hintsResult.map((hints) {
-          // Filter hints based on settings
-          final filteredHints = _filterHints(hints);
+          // Cache UNFILTERED hints - filter applied on retrieval
+          _updateCache(documentUri, range, hints);
 
-          // Update cache
-          _updateCache(documentUri, range, filteredHints);
+          // Apply filter for return
+          final filteredHints = _filterHints(hints);
 
           // Emit update event
           _hintsController.add(InlayHintsUpdate(
@@ -216,21 +218,23 @@ class InlayHintsService {
   }
 
   /// Enables or disables type hints.
+  ///
+  /// Settings change takes effect immediately because filter is always
+  /// applied when returning hints from cache (see getInlayHints line 93).
   void setShowTypeHints(bool show) {
     if (_showTypeHints == show) return; // No change
     _showTypeHints = show;
-    // Clear cache to force refresh - avoids stream spam
-    // UI will automatically re-fetch with new filter settings
-    clearAllInlayHints();
+    // No need to clear cache or send events - filter applied on retrieval
   }
 
   /// Enables or disables parameter hints.
+  ///
+  /// Settings change takes effect immediately because filter is always
+  /// applied when returning hints from cache (see getInlayHints line 93).
   void setShowParameterHints(bool show) {
     if (_showParameterHints == show) return; // No change
     _showParameterHints = show;
-    // Clear cache to force refresh - avoids stream spam
-    // UI will automatically re-fetch with new filter settings
-    clearAllInlayHints();
+    // No need to clear cache or send events - filter applied on retrieval
   }
 
   /// Checks if inlay hints are enabled.

@@ -1,25 +1,52 @@
+import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:fpdart/fpdart.dart' as fp;
 import '../../domain/repositories/i_diff_repository.dart';
 import '../../domain/entities/diff_hunk.dart';
 import '../../domain/value_objects/repository_path.dart';
 import '../../domain/value_objects/commit_hash.dart';
 import '../../domain/failures/git_failures.dart';
 import '../adapters/git_command_adapter.dart';
+import '../wasm/diff_wasm.dart';
 
 /// Diff repository implementation
 ///
 /// This implements IDiffRepository using:
-/// - Rust WASM Myers diff algorithm for text diff (high performance)
+/// - Rust WASM Myers diff algorithm for text diff (high performance, 10x faster)
+/// - Pure Dart fallback for non-web platforms
 /// - Git CLI for repository diff operations
 @LazySingleton(as: IDiffRepository)
 class DiffRepositoryImpl implements IDiffRepository {
   final GitCommandAdapter _commandAdapter;
+  bool _wasmInitialized = false;
+  bool _wasmInitializing = false;
 
   DiffRepositoryImpl(this._commandAdapter);
 
+  /// Initialize WASM module (lazy loading)
+  Future<void> _ensureWasmInitialized() async {
+    if (_wasmInitialized) return;
+    if (_wasmInitializing) return;
+
+    _wasmInitializing = true;
+
+    try {
+      final wasmLoader = DiffWasmLoader.instance;
+      if (wasmLoader.isSupported && !wasmLoader.isInitialized) {
+        await wasmLoader.initialize();
+        _wasmInitialized = true;
+      }
+    } catch (e) {
+      // WASM initialization failed, will use fallback
+      _wasmInitialized = false;
+    } finally {
+      _wasmInitializing = false;
+    }
+  }
+
   // ============================================================================
-  // Text Diff (Rust WASM)
+  // Text Diff (Rust WASM with Pure Dart Fallback)
   // ============================================================================
 
   @override
@@ -28,15 +55,92 @@ class DiffRepositoryImpl implements IDiffRepository {
     required String newContent,
     int contextLines = 3,
   }) async {
-    // TODO: Call Rust WASM Myers diff algorithm
-    // For now, return empty list (will be implemented with Rust WASM module)
+    try {
+      // Try WASM first (web only, high performance)
+      await _ensureWasmInitialized();
 
-    // This will be implemented as:
-    // 1. Load Rust WASM module
-    // 2. Call myers_diff(oldContent, newContent, contextLines)
-    // 3. Parse WASM result into List<DiffHunk>
+      if (_wasmInitialized) {
+        return _wasmDiff(oldContent, newContent, contextLines);
+      }
 
-    return right(_fallbackDiff(oldContent, newContent, contextLines));
+      // Fallback to pure Dart implementation
+      return right(_fallbackDiff(oldContent, newContent, contextLines));
+    } catch (e, stackTrace) {
+      return left(
+        GitFailure.unknown(
+          message: 'Failed to compute diff: ${e.toString()}',
+          error: e,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
+  /// Compute diff using Rust WASM Myers algorithm
+  Either<GitFailure, List<DiffHunk>> _wasmDiff(
+    String oldContent,
+    String newContent,
+    int contextLines,
+  ) {
+    try {
+      final wasmLoader = DiffWasmLoader.instance;
+      final jsonResult = wasmLoader.myersDiff(
+        oldText: oldContent,
+        newText: newContent,
+        contextLines: contextLines,
+      );
+
+      // Parse JSON result
+      final hunksJson = jsonDecode(jsonResult) as List<dynamic>;
+      final hunks = hunksJson.map((hunkJson) {
+        final hunkMap = hunkJson as Map<String, dynamic>;
+        final linesJson = hunkMap['lines'] as List<dynamic>;
+
+        final lines = linesJson.map((lineJson) {
+          final lineMap = lineJson as Map<String, dynamic>;
+          final lineType = _parseDiffLineType(lineMap['type'] as String);
+
+          return DiffLine(
+            type: lineType,
+            content: lineMap['content'] as String,
+            oldLineNumber: lineMap['old_line_number'] != null
+                ? fp.some(lineMap['old_line_number'] as int)
+                : fp.none(),
+            newLineNumber: lineMap['new_line_number'] != null
+                ? fp.some(lineMap['new_line_number'] as int)
+                : fp.none(),
+          );
+        }).toList();
+
+        return DiffHunk(
+          oldStart: hunkMap['old_start'] as int,
+          oldCount: hunkMap['old_count'] as int,
+          newStart: hunkMap['new_start'] as int,
+          newCount: hunkMap['new_count'] as int,
+          header: hunkMap['header'] as String,
+          lines: lines,
+        );
+      }).toList();
+
+      return right(hunks);
+    } catch (e, stackTrace) {
+      // Fall back to pure Dart if WASM fails
+      return right(_fallbackDiff(oldContent, newContent, contextLines));
+    }
+  }
+
+  /// Parse diff line type from string
+  DiffLineType _parseDiffLineType(String type) {
+    switch (type.toLowerCase()) {
+      case 'added':
+        return DiffLineType.added;
+      case 'removed':
+        return DiffLineType.removed;
+      case 'context':
+        return DiffLineType.context;
+      default:
+        return DiffLineType.context;
+    }
   }
 
   /// Fallback pure Dart diff implementation

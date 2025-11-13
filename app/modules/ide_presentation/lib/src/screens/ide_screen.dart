@@ -622,30 +622,34 @@ class _IdeScreenState extends State<IdeScreen> {
       final file = File(_currentFilePath!);
       if (await file.exists()) {
         // Ask user for confirmation
-        if (mounted) {
-          final shouldOverwrite = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('File already exists'),
-              content: Text('Do you want to overwrite $_currentFilePath?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Overwrite'),
-                ),
-              ],
-            ),
-          );
+        if (!mounted) return; // Widget disposed before showing dialog
 
-          if (shouldOverwrite != true) {
-            // User cancelled, reset path
-            _currentFilePath = null;
-            return;
-          }
+        final shouldOverwrite = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('File already exists'),
+            content: Text('Do you want to overwrite $_currentFilePath?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Overwrite'),
+              ),
+            ],
+          ),
+        );
+
+        // CRITICAL: Check mounted after async operation (showDialog)
+        // Widget may have been disposed while dialog was open
+        if (!mounted) return;
+
+        if (shouldOverwrite != true) {
+          // User cancelled, reset path
+          _currentFilePath = null;
+          return;
         }
       }
     }

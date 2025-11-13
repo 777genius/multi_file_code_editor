@@ -217,14 +217,20 @@ class InlayHintsService {
 
   /// Enables or disables type hints.
   void setShowTypeHints(bool show) {
+    if (_showTypeHints == show) return; // No change
     _showTypeHints = show;
-    _refreshAllCachedHints();
+    // Clear cache to force refresh - avoids stream spam
+    // UI will automatically re-fetch with new filter settings
+    clearAllInlayHints();
   }
 
   /// Enables or disables parameter hints.
   void setShowParameterHints(bool show) {
+    if (_showParameterHints == show) return; // No change
     _showParameterHints = show;
-    _refreshAllCachedHints();
+    // Clear cache to force refresh - avoids stream spam
+    // UI will automatically re-fetch with new filter settings
+    clearAllInlayHints();
   }
 
   /// Checks if inlay hints are enabled.
@@ -289,25 +295,6 @@ class InlayHintsService {
   ) {
     _hintsCache.putIfAbsent(uri, () => {});
     _hintsCache[uri]![range] = hints;
-  }
-
-  /// Refreshes all cached hints (when settings change).
-  void _refreshAllCachedHints() {
-    final documents = _hintsCache.keys.toList();
-    for (final doc in documents) {
-      final ranges = _hintsCache[doc]?.keys.toList() ?? [];
-      for (final range in ranges) {
-        final hints = _hintsCache[doc]![range]!;
-        final filtered = _filterHints(hints);
-        _hintsCache[doc]![range] = filtered;
-
-        _hintsController.add(InlayHintsUpdate(
-          documentUri: doc,
-          range: range,
-          hints: filtered,
-        ));
-      }
-    }
   }
 
   /// Disposes the service.

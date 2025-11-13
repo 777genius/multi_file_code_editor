@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:path/path.dart' as path;
@@ -28,8 +29,66 @@ class NpmCommands {
   NpmCommands({
     required String projectRoot,
     PackageManager packageManager = PackageManager.npm,
-  })  : _projectRoot = projectRoot,
+  })  : _projectRoot = _validateProjectRoot(projectRoot),
         _packageManager = packageManager;
+
+  /// Default timeout for package manager operations (2 minutes)
+  static const Duration _defaultTimeout = Duration(minutes: 2);
+
+  /// Validates project root path to prevent path traversal attacks
+  static String _validateProjectRoot(String projectRoot) {
+    if (projectRoot.isEmpty) {
+      throw ArgumentError('Project root cannot be empty');
+    }
+    // Normalize path to prevent path traversal
+    final normalized = path.normalize(projectRoot);
+    if (normalized.contains('..')) {
+      throw ArgumentError('Project root cannot contain parent directory references');
+    }
+    return normalized;
+  }
+
+  /// Validates package name to prevent command injection
+  static void _validatePackageName(String packageName) {
+    if (packageName.isEmpty) {
+      throw ArgumentError('Package name cannot be empty');
+    }
+    // Package names should only contain alphanumeric, hyphens, underscores, dots, slashes, @
+    final validPattern = RegExp(r'^[@a-zA-Z0-9_.\-/]+$');
+    if (!validPattern.hasMatch(packageName)) {
+      throw ArgumentError(
+        'Invalid package name: $packageName. Only alphanumeric characters, -, _, ., /, and @ are allowed',
+      );
+    }
+    // Prevent shell metacharacters
+    const dangerousChars = [';', '&', '|', '`', '\$', '(', ')', '<', '>', '\n', '\r'];
+    for (final char in dangerousChars) {
+      if (packageName.contains(char)) {
+        throw ArgumentError('Package name cannot contain shell metacharacters');
+      }
+    }
+  }
+
+  /// Runs a process with timeout to prevent hanging
+  Future<ProcessResult> _runWithTimeout(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Duration? timeout,
+  }) async {
+    return Process.run(
+      executable,
+      arguments,
+      workingDirectory: workingDirectory,
+    ).timeout(
+      timeout ?? _defaultTimeout,
+      onTimeout: () {
+        throw TimeoutException(
+          'Command "$executable ${arguments.join(' ')}" timed out after ${timeout ?? _defaultTimeout}',
+        );
+      },
+    );
+  }
 
   /// Gets the path to package.json
   String get packageJsonPath => path.join(_projectRoot, 'package.json');
@@ -85,11 +144,9 @@ class NpmCommands {
     }
 
     try {
-      final args = _packageManager == PackageManager.yarn
-          ? ['install']
-          : ['install'];
+      final args = ['install'];
 
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         args,
         workingDirectory: _projectRoot,
@@ -122,6 +179,13 @@ class NpmCommands {
     bool isDev = false,
     bool isGlobal = false,
   }) async {
+    // Validate package name for security
+    try {
+      _validatePackageName(packageName);
+    } catch (e) {
+      return left(e.toString());
+    }
+
     if (!isGlobal && !await isValidJsProject()) {
       return left('Not a valid JavaScript/TypeScript project');
     }
@@ -151,7 +215,7 @@ class NpmCommands {
       final packageSpec = version != null ? '$packageName@$version' : packageName;
       args.add(packageSpec);
 
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         args,
         workingDirectory: isGlobal ? null : _projectRoot,
@@ -180,6 +244,13 @@ class NpmCommands {
     required String packageName,
     bool isGlobal = false,
   }) async {
+    // Validate package name for security
+    try {
+      _validatePackageName(packageName);
+    } catch (e) {
+      return left(e.toString());
+    }
+
     if (!isGlobal && !await isValidJsProject()) {
       return left('Not a valid JavaScript/TypeScript project');
     }
@@ -202,7 +273,7 @@ class NpmCommands {
 
       args.add(packageName);
 
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         args,
         workingDirectory: isGlobal ? null : _projectRoot,
@@ -229,7 +300,7 @@ class NpmCommands {
     }
 
     try {
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         ['outdated'],
         workingDirectory: _projectRoot,
@@ -257,7 +328,7 @@ class NpmCommands {
           ? ['upgrade']
           : ['update'];
 
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         args,
         workingDirectory: _projectRoot,
@@ -284,6 +355,13 @@ class NpmCommands {
   Future<Either<String, String>> runScript({
     required String scriptName,
   }) async {
+    // Validate script name for security
+    try {
+      _validatePackageName(scriptName); // Same validation rules apply
+    } catch (e) {
+      return left(e.toString());
+    }
+
     if (!await isValidJsProject()) {
       return left('Not a valid JavaScript/TypeScript project');
     }
@@ -293,7 +371,7 @@ class NpmCommands {
           ? ['run', scriptName]
           : [scriptName];
 
-      final result = await Process.run(
+      final result = await _runWithTimeout(
         _commandName,
         args,
         workingDirectory: _projectRoot,
@@ -323,23 +401,17 @@ class NpmCommands {
       final packageJsonFile = File(packageJsonPath);
       final content = await packageJsonFile.readAsString();
 
-      // Simple parsing - find scripts section
-      // In production, use json_serializable
-      final scriptsRegex = RegExp(r'"scripts"\s*:\s*\{([^}]+)\}');
-      final match = scriptsRegex.firstMatch(content);
+      // Parse JSON properly using dart:convert
+      final Map<String, dynamic> packageJson = jsonDecode(content);
 
-      if (match == null) {
+      // Extract scripts section
+      final scripts = packageJson['scripts'];
+      if (scripts == null || scripts is! Map) {
         return right([]);
       }
 
-      final scriptsContent = match.group(1)!;
-      final scriptRegex = RegExp(r'"([^"]+)"\s*:');
-      final scripts = scriptRegex
-          .allMatches(scriptsContent)
-          .map((m) => m.group(1)!)
-          .toList();
-
-      return right(scripts);
+      // Return list of script names
+      return right((scripts as Map<String, dynamic>).keys.toList());
     } catch (e) {
       return left('Failed to read scripts: $e');
     }
@@ -352,7 +424,11 @@ class NpmCommands {
   /// - Left(error) on failure
   Future<Either<String, String>> getNodeVersion() async {
     try {
-      final result = await Process.run('node', ['--version']);
+      final result = await _runWithTimeout(
+        'node',
+        ['--version'],
+        timeout: const Duration(seconds: 10),
+      );
       if (result.exitCode == 0) {
         return right(result.stdout.toString().trim());
       } else {
@@ -370,7 +446,11 @@ class NpmCommands {
   /// - Left(error) on failure
   Future<Either<String, String>> getPackageManagerVersion() async {
     try {
-      final result = await Process.run(_commandName, ['--version']);
+      final result = await _runWithTimeout(
+        _commandName,
+        ['--version'],
+        timeout: const Duration(seconds: 10),
+      );
       if (result.exitCode == 0) {
         return right(result.stdout.toString().trim());
       } else {

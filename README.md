@@ -64,7 +64,11 @@ dependencies:
   multi_editor_plugin_file_icons: ^0.1.0
   multi_editor_plugin_file_stats: ^0.1.0
   multi_editor_plugin_recent_files: ^0.1.0
+
+  # Language support plugins
   multi_editor_plugin_dart: ^0.1.0
+  multi_editor_plugin_javascript: ^0.1.0
+  multi_editor_plugin_typescript: ^0.1.0
 ```
 
 ### Basic Usage
@@ -167,7 +171,7 @@ class YourFileRepository implements FileRepository {
 
 ## 📦 Packages
 
-The project is organized as a **monorepo** with **10 packages**.
+The project is organized as a **monorepo** with **12 packages**.
 
 ### Core Packages
 
@@ -187,7 +191,9 @@ The project is organized as a **monorepo** with **10 packages**.
 | [**multi_editor_plugin_file_icons**](modules/plugins/multi_editor_plugin_file_icons) | 150+ file type icons via Devicon CDN | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
 | [**multi_editor_plugin_file_stats**](modules/plugins/multi_editor_plugin_file_stats) | Real-time file statistics (lines, chars, words) | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
 | [**multi_editor_plugin_recent_files**](modules/plugins/multi_editor_plugin_recent_files) | Recent files tracking | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
-| [**multi_editor_plugin_dart**](modules/plugins/multi_editor_plugin_dart) | Dart language support with snippets | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
+| [**multi_editor_plugin_dart**](modules/plugins/multi_editor_plugin_dart) | Dart language support with 14 snippets | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
+| [**multi_editor_plugin_javascript**](modules/plugins/multi_editor_plugin_javascript) | JavaScript/ES6+ support with 42 snippets | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
+| [**multi_editor_plugin_typescript**](modules/plugins/multi_editor_plugin_typescript) | TypeScript support with 50 snippets | ![pub](https://img.shields.io/badge/pub-0.1.0-blue) |
 
 ## 🏗️ Architecture
 

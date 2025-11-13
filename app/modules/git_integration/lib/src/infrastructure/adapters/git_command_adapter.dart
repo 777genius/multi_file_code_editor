@@ -121,6 +121,7 @@ class GitCommandAdapter {
         ),
       );
     } on ProcessException catch (e, stackTrace) {
+      // Process failed to start - no need to kill
       return left(
         GitFailure.commandFailed(
           command: 'git ${args.join(' ')}',
@@ -129,6 +130,9 @@ class GitCommandAdapter {
         ),
       );
     } catch (e, stackTrace) {
+      // Unexpected error - ensure process is killed
+      // This handles UTF-8 decode errors, Future.wait errors, etc.
+      process?.kill(ProcessSignal.sigkill);
       return left(
         GitFailure.unknown(
           message: 'Failed to execute git command: ${e.toString()}',

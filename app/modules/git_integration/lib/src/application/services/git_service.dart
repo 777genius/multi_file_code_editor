@@ -529,11 +529,13 @@ class GitService {
     final future = operation();
     _operationQueue[key] = future.then((_) => null);
 
-    final result = await future;
-
-    // Clean up queue
-    _operationQueue.remove(key);
-
-    return result;
+    try {
+      final result = await future;
+      return result;
+    } finally {
+      // CRITICAL: Always clean up queue, even on error
+      // Without this, queue entry leaks on error and blocks all future operations
+      _operationQueue.remove(key);
+    }
   }
 }

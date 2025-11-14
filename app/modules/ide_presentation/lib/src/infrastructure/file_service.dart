@@ -95,17 +95,21 @@ class FileService {
         // Write content to temp file
         await tempFile.writeAsString(content, flush: true);
 
-        // CRITICAL: Safe atomic overwrite for cross-platform compatibility
-        // On Windows, rename() fails if destination exists
-        // Solution: delete destination first, then rename
-        if (await file.exists()) {
-          await file.delete();
+        // CRITICAL: Atomic overwrite with cross-platform compatibility
+        // On POSIX: rename is atomic and replaces the target
+        // On Windows: rename fails if target exists
+        // Strategy: try atomic rename first, fallback to delete+rename on Windows
+        try {
+          await tempFile.rename(filePath);
+        } on FileSystemException catch (e) {
+          // On Windows, if rename failed because target exists, delete and retry
+          if (await file.exists()) {
+            await file.delete();
+            await tempFile.rename(filePath);
+          } else {
+            rethrow;
+          }
         }
-
-        // Atomic rename - now safe on all platforms
-        // This either succeeds completely or fails completely
-        // No intermediate corrupted state possible
-        await tempFile.rename(filePath);
 
         return right(unit);
       } catch (e) {

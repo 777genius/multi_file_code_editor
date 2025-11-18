@@ -77,7 +77,7 @@ abstract class _ModuleListStore with Store {
         totalBytes += module.sizeForCurrentPlatform!.bytes;
       }
     }
-    return ByteSize(bytes: totalBytes);
+    return ByteSize(totalBytes);
   }
 
   /// Computed: Number of selected modules

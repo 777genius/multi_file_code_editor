@@ -45,7 +45,7 @@ class CheckRuntimeUpdatesCommandHandler
         (error) => throw NetworkException(
           'Failed to fetch manifest: ${error.message}',
         ),
-        (modules) => modules,
+        (manifest) => manifest.modules,
       );
 
       if (latestModules.isEmpty) {

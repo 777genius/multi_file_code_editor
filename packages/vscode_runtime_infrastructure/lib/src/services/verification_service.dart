@@ -52,7 +52,7 @@ class VerificationService implements IVerificationService {
         ),
         (_) async {
           final stat = await file.stat();
-          final actualSize = ByteSize(bytes: stat.size);
+          final actualSize = ByteSize(stat.size);
 
           if (actualSize.bytes != expectedSize.bytes) {
             return left(
@@ -85,7 +85,7 @@ class VerificationService implements IVerificationService {
           final digest = sha256.convert(bytes);
           final hashString = digest.toString();
 
-          final hash = SHA256Hash(value: hashString);
+          final hash = SHA256Hash.fromString(hashString);
 
           return right(hash);
         },

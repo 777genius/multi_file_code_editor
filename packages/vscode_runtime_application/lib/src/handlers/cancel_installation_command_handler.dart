@@ -26,12 +26,12 @@ class CancelInstallationCommandHandler
   ) async {
     try {
       // 1. Load modules (needed to reconstruct installation)
-      final modulesResult = await _manifestRepository.fetchManifest();
-      final modules = modulesResult.fold(
+      final manifestResult = await _manifestRepository.fetchManifest();
+      final modules = manifestResult.fold(
         (error) => throw ApplicationException(
           'Failed to load manifest: ${error.message}',
         ),
-        (m) => m,
+        (manifest) => manifest.modules,
       );
 
       // 2. Load installation

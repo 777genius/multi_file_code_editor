@@ -29,7 +29,7 @@ class PlatformInfoDto with _$PlatformInfoDto {
 
   /// Check if sufficient disk space for installation
   /// Requires at least 1GB free space
-  bool get hasSufficientSpace => availableDiskSpace.inGB >= 1.0;
+  bool get hasSufficientSpace => availableDiskSpace.gb >= 1.0;
 
   /// Check if platform can install runtime
   bool get canInstallRuntime =>

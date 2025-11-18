@@ -41,12 +41,12 @@ class GetRuntimeStatusQueryHandler
       final version = versionOption.getOrElse(() => throw Exception());
 
       // 3. Get all available modules
-      final modulesResult = await _manifestRepository.fetchManifest();
-      final allModules = modulesResult.fold(
+      final manifestResult = await _manifestRepository.fetchManifest();
+      final allModules = manifestResult.fold(
         (error) => throw ApplicationException(
           'Failed to fetch manifest: ${error.message}',
         ),
-        (modules) => modules,
+        (manifest) => manifest.modules,
       );
 
       // 4. Check which modules are installed

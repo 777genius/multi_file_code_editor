@@ -33,7 +33,7 @@ class GetPlatformInfoQueryHandler
       final diskSpaceResult = await _platformService.getAvailableDiskSpace();
       final diskSpace = diskSpaceResult.fold(
         (error) => ByteSize.fromGB(100), // Default fallback
-        (bytes) => ByteSize(bytes: bytes),
+        (bytes) => ByteSize(bytes),
       );
 
       // 3. Check permissions

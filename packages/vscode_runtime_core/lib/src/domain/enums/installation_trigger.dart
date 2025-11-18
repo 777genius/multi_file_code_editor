@@ -1,5 +1,8 @@
 /// What triggered the installation
 enum InstallationTrigger {
+  /// User manually triggered installation
+  manual,
+
   /// User manually triggered from welcome screen
   welcomeScreen,
 
@@ -22,6 +25,8 @@ enum InstallationTrigger {
 extension InstallationTriggerX on InstallationTrigger {
   String get displayName {
     switch (this) {
+      case InstallationTrigger.manual:
+        return 'Manual';
       case InstallationTrigger.welcomeScreen:
         return 'Welcome Screen';
       case InstallationTrigger.fileOpen:

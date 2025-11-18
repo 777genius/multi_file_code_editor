@@ -65,14 +65,14 @@ class RuntimeRepository implements IRuntimeRepository {
 
       // Reconstruct the installation from DTO + modules
       final installation = RuntimeInstallation(
-        id: InstallationId(value: dto.id),
+        id: InstallationId(dto.id),
         modules: modules,
         targetPlatform: dto.toPlatformIdentifier(),
         status: dto.toInstallationStatus(),
         createdAt: dto.createdAt,
         trigger: dto.toInstallationTrigger(),
         installedModules: dto.installedModuleIds
-            .map((id) => ModuleId(value: id))
+            .map((id) => ModuleId(id))
             .toList(),
         progress: dto.progress,
         errorMessage: dto.errorMessage,

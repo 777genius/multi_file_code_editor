@@ -173,10 +173,6 @@ class InstallRuntimeCommandHandler
       return right(unit);
     } on DomainException catch (e) {
       return left(ApplicationException(e.message));
-    } on DioException catch (e) {
-      return left(NetworkException('Network error: ${e.message}', e));
-    } on FileSystemException catch (e) {
-      return left(ApplicationException('File system error: ${e.message}', e));
     } on Exception catch (e) {
       return left(ApplicationException('Unexpected error: $e', e));
     }
@@ -220,7 +216,7 @@ class InstallRuntimeCommandHandler
         expectedSize: artifact.size,
         onProgress: (downloaded, total) {
           final progress = downloaded.progressTo(total);
-          onProgress?.call(module.id, progress * 0.6); // 60% for download
+          onProgress?.call(module.id, progress * 0.5); // 50% for download
         },
         cancelToken: cancelToken,
       );
@@ -233,7 +229,7 @@ class InstallRuntimeCommandHandler
       );
 
       current = current.markModuleDownloaded(module.id);
-      onProgress?.call(module.id, 0.6);
+      onProgress?.call(module.id, 0.5);
 
       // 4. Verify integrity
       final verifyResult = await _verificationService.verify(

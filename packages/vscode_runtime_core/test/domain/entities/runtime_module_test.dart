@@ -18,12 +18,12 @@ void main() {
     late Map<PlatformIdentifier, PlatformArtifact> testArtifacts;
 
     setUp(() {
-      testId = ModuleId(value: 'test-module');
+      testId = ModuleId('test-module');
       testVersion = RuntimeVersion(major: 1, minor: 2, patch: 3);
 
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
@@ -57,8 +57,8 @@ void main() {
 
       test('creates module with dependencies', () {
         final dependencies = [
-          ModuleId(value: 'dep1'),
-          ModuleId(value: 'dep2'),
+          ModuleId('dep1'),
+          ModuleId('dep2'),
         ];
         final module = RuntimeModule(
           id: testId,
@@ -164,9 +164,9 @@ void main() {
 
       test('throws on invalid artifact', () {
         final invalidArtifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-          hash: SHA256Hash(value: 'a' * 64),
-          size: ByteSize(bytes: 0), // Invalid - zero size
+          url: DownloadUrl('https://example.com/file.tar.gz'),
+          hash: SHA256Hash('a' * 64),
+          size: ByteSize(0), // Invalid - zero size
         );
 
         expect(
@@ -258,7 +258,7 @@ void main() {
           type: ModuleType.runtime,
           version: testVersion,
           platformArtifacts: testArtifacts,
-          dependencies: [ModuleId(value: 'dep1')],
+          dependencies: [ModuleId('dep1')],
         );
 
         expect(module.hasDependencies, isTrue);
@@ -326,7 +326,7 @@ void main() {
 
     group('dependsOn', () {
       test('returns true when depends on module', () {
-        final depId = ModuleId(value: 'dep1');
+        final depId = ModuleId('dep1');
         final module = RuntimeModule(
           id: testId,
           name: 'Test Module',
@@ -334,7 +334,7 @@ void main() {
           type: ModuleType.runtime,
           version: testVersion,
           platformArtifacts: testArtifacts,
-          dependencies: [depId, ModuleId(value: 'dep2')],
+          dependencies: [depId, ModuleId('dep2')],
         );
 
         expect(module.dependsOn(depId), isTrue);
@@ -348,10 +348,10 @@ void main() {
           type: ModuleType.runtime,
           version: testVersion,
           platformArtifacts: testArtifacts,
-          dependencies: [ModuleId(value: 'dep1')],
+          dependencies: [ModuleId('dep1')],
         );
 
-        expect(module.dependsOn(ModuleId(value: 'dep2')), isFalse);
+        expect(module.dependsOn(ModuleId('dep2')), isFalse);
       });
     });
 
@@ -371,9 +371,9 @@ void main() {
 
       test('returns false when any artifact is invalid', () {
         final invalidArtifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-          hash: SHA256Hash(value: 'a' * 64),
-          size: ByteSize(bytes: 0),
+          url: DownloadUrl('https://example.com/file.tar.gz'),
+          hash: SHA256Hash('a' * 64),
+          size: ByteSize(0),
         );
 
         final module = RuntimeModule(
@@ -518,7 +518,7 @@ void main() {
         );
 
         final module2 = RuntimeModule(
-          id: ModuleId(value: 'other-module'),
+          id: ModuleId('other-module'),
           name: 'Test Module',
           description: 'A test module',
           type: ModuleType.runtime,
@@ -569,8 +569,8 @@ void main() {
     group('real-world scenarios', () {
       test('creates Node.js module', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.gz'),
-          hash: SHA256Hash(value: 'a' * 64),
+          url: DownloadUrl('https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.gz'),
+          hash: SHA256Hash('a' * 64),
           size: ByteSize.fromMB(50),
         );
 
@@ -592,8 +592,8 @@ void main() {
 
       test('creates OpenVSCode Server module with Node.js dependency', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://github.com/gitpod-io/openvscode-server/releases/download/v1.85.0/openvscode-server-v1.85.0-linux-x64.tar.gz'),
-          hash: SHA256Hash(value: 'b' * 64),
+          url: DownloadUrl('https://github.com/gitpod-io/openvscode-server/releases/download/v1.85.0/openvscode-server-v1.85.0-linux-x64.tar.gz'),
+          hash: SHA256Hash('b' * 64),
           size: ByteSize.fromMB(120),
         );
 
@@ -616,8 +616,8 @@ void main() {
 
       test('creates base extensions module', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://cdn.example.com/base-extensions-v1.0.0.zip'),
-          hash: SHA256Hash(value: 'c' * 64),
+          url: DownloadUrl('https://cdn.example.com/base-extensions-v1.0.0.zip'),
+          hash: SHA256Hash('c' * 64),
           size: ByteSize.fromMB(5),
         );
 

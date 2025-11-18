@@ -6,18 +6,18 @@ void main() {
   group('ByteSize', () {
     group('constructor', () {
       test('creates valid byte size', () {
-        final size = ByteSize(bytes: 1024);
+        final size = ByteSize(1024);
         expect(size.bytes, 1024);
       });
 
       test('creates zero byte size', () {
-        final size = ByteSize(bytes: 0);
+        final size = ByteSize(0);
         expect(size.bytes, 0);
       });
 
       test('throws on negative bytes', () {
         expect(
-          () => ByteSize(bytes: -1),
+          () => ByteSize(-1),
           throwsA(isA<ValidationException>()),
         );
       });
@@ -52,27 +52,27 @@ void main() {
 
     group('getters', () {
       test('inKB returns correct value', () {
-        final size = ByteSize(bytes: 2048);
+        final size = ByteSize(2048);
         expect(size.inKB, 2.0);
       });
 
       test('inMB returns correct value', () {
-        final size = ByteSize(bytes: 2097152); // 2 * 1024 * 1024
+        final size = ByteSize(2097152); // 2 * 1024 * 1024
         expect(size.inMB, 2.0);
       });
 
       test('inGB returns correct value', () {
-        final size = ByteSize(bytes: 2147483648); // 2 * 1024 * 1024 * 1024
+        final size = ByteSize(2147483648); // 2 * 1024 * 1024 * 1024
         expect(size.inGB, 2.0);
       });
 
       test('inKB handles fractional values', () {
-        final size = ByteSize(bytes: 1536); // 1.5 KB
+        final size = ByteSize(1536); // 1.5 KB
         expect(size.inKB, 1.5);
       });
 
       test('zero bytes returns zero for all units', () {
-        final size = ByteSize(bytes: 0);
+        final size = ByteSize(0);
         expect(size.inKB, 0.0);
         expect(size.inMB, 0.0);
         expect(size.inGB, 0.0);
@@ -81,32 +81,32 @@ void main() {
 
     group('toHumanReadable', () {
       test('formats bytes', () {
-        final size = ByteSize(bytes: 512);
+        final size = ByteSize(512);
         expect(size.toHumanReadable(), '512 B');
       });
 
       test('formats KB', () {
-        final size = ByteSize(bytes: 1536); // 1.5 KB
+        final size = ByteSize(1536); // 1.5 KB
         expect(size.toHumanReadable(), '1.50 KB');
       });
 
       test('formats MB', () {
-        final size = ByteSize(bytes: 1572864); // 1.5 MB
+        final size = ByteSize(1572864); // 1.5 MB
         expect(size.toHumanReadable(), '1.50 MB');
       });
 
       test('formats GB', () {
-        final size = ByteSize(bytes: 1610612736); // 1.5 GB
+        final size = ByteSize(1610612736); // 1.5 GB
         expect(size.toHumanReadable(), '1.50 GB');
       });
 
       test('formats zero bytes', () {
-        final size = ByteSize(bytes: 0);
+        final size = ByteSize(0);
         expect(size.toHumanReadable(), '0 B');
       });
 
       test('uses correct precision', () {
-        final size = ByteSize(bytes: 1024 * 1024 + 512 * 1024); // 1.5 MB
+        final size = ByteSize(1024 * 1024 + 512 * 1024); // 1.5 MB
         final readable = size.toHumanReadable();
         expect(readable, contains('1.50'));
       });
@@ -114,78 +114,78 @@ void main() {
 
     group('progressTo', () {
       test('calculates progress percentage', () {
-        final current = ByteSize(bytes: 50);
-        final total = ByteSize(bytes: 100);
+        final current = ByteSize(50);
+        final total = ByteSize(100);
         expect(current.progressTo(total), 0.5);
       });
 
       test('returns 0 when current is 0', () {
-        final current = ByteSize(bytes: 0);
-        final total = ByteSize(bytes: 100);
+        final current = ByteSize(0);
+        final total = ByteSize(100);
         expect(current.progressTo(total), 0.0);
       });
 
       test('returns 1 when current equals total', () {
-        final current = ByteSize(bytes: 100);
-        final total = ByteSize(bytes: 100);
+        final current = ByteSize(100);
+        final total = ByteSize(100);
         expect(current.progressTo(total), 1.0);
       });
 
       test('returns 0 when total is 0', () {
-        final current = ByteSize(bytes: 50);
-        final total = ByteSize(bytes: 0);
+        final current = ByteSize(50);
+        final total = ByteSize(0);
         expect(current.progressTo(total), 0.0);
       });
 
       test('handles fractional progress', () {
-        final current = ByteSize(bytes: 33);
-        final total = ByteSize(bytes: 100);
+        final current = ByteSize(33);
+        final total = ByteSize(100);
         expect(current.progressTo(total), 0.33);
       });
     });
 
     group('operators', () {
       test('+ adds byte sizes', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 50);
+        final a = ByteSize(100);
+        final b = ByteSize(50);
         final result = a + b;
         expect(result.bytes, 150);
       });
 
       test('- subtracts byte sizes', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 50);
+        final a = ByteSize(100);
+        final b = ByteSize(50);
         final result = a - b;
         expect(result.bytes, 50);
       });
 
       test('< compares byte sizes', () {
-        final a = ByteSize(bytes: 50);
-        final b = ByteSize(bytes: 100);
+        final a = ByteSize(50);
+        final b = ByteSize(100);
         expect(a < b, isTrue);
         expect(b < a, isFalse);
       });
 
       test('<= compares byte sizes', () {
-        final a = ByteSize(bytes: 50);
-        final b = ByteSize(bytes: 100);
-        final c = ByteSize(bytes: 50);
+        final a = ByteSize(50);
+        final b = ByteSize(100);
+        final c = ByteSize(50);
         expect(a <= b, isTrue);
         expect(a <= c, isTrue);
         expect(b <= a, isFalse);
       });
 
       test('> compares byte sizes', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 50);
+        final a = ByteSize(100);
+        final b = ByteSize(50);
         expect(a > b, isTrue);
         expect(b > a, isFalse);
       });
 
       test('>= compares byte sizes', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 50);
-        final c = ByteSize(bytes: 100);
+        final a = ByteSize(100);
+        final b = ByteSize(50);
+        final c = ByteSize(100);
         expect(a >= b, isTrue);
         expect(a >= c, isTrue);
         expect(b >= a, isFalse);
@@ -194,24 +194,24 @@ void main() {
 
     group('equality', () {
       test('equal byte sizes are equal', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 100);
+        final a = ByteSize(100);
+        final b = ByteSize(100);
         expect(a, equals(b));
         expect(a.hashCode, equals(b.hashCode));
       });
 
       test('different byte sizes are not equal', () {
-        final a = ByteSize(bytes: 100);
-        final b = ByteSize(bytes: 50);
+        final a = ByteSize(100);
+        final b = ByteSize(50);
         expect(a, isNot(equals(b)));
       });
     });
 
     group('compareTo', () {
       test('compares correctly', () {
-        final a = ByteSize(bytes: 50);
-        final b = ByteSize(bytes: 100);
-        final c = ByteSize(bytes: 50);
+        final a = ByteSize(50);
+        final b = ByteSize(100);
+        final c = ByteSize(50);
 
         expect(a.compareTo(b), lessThan(0));
         expect(b.compareTo(a), greaterThan(0));

@@ -266,13 +266,13 @@ void main() {
 
     setUp(() {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       linuxModule = RuntimeModule.create(
-        id: ModuleId(value: 'linux-only'),
+        id: ModuleId('linux-only'),
         name: 'Linux Only',
         description: 'Only for Linux',
         type: ModuleType.runtime,
@@ -283,7 +283,7 @@ void main() {
       );
 
       multiPlatformModule = RuntimeModule.create(
-        id: ModuleId(value: 'multi-platform'),
+        id: ModuleId('multi-platform'),
         name: 'Multi Platform',
         description: 'For multiple platforms',
         type: ModuleType.runtime,
@@ -322,13 +322,13 @@ void main() {
 
     setUp(() {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       noDepsModule = RuntimeModule.create(
-        id: ModuleId(value: 'no-deps'),
+        id: ModuleId('no-deps'),
         name: 'No Dependencies',
         description: 'Has no dependencies',
         type: ModuleType.runtime,
@@ -337,15 +337,15 @@ void main() {
       );
 
       withDepsModule = RuntimeModule.create(
-        id: ModuleId(value: 'with-deps'),
+        id: ModuleId('with-deps'),
         name: 'With Dependencies',
         description: 'Has dependencies',
         type: ModuleType.server,
         version: RuntimeVersion(major: 1, minor: 0, patch: 0),
         platformArtifacts: {PlatformIdentifier.linuxX64: artifact},
         dependencies: [
-          ModuleId(value: 'dep1'),
-          ModuleId(value: 'dep2'),
+          ModuleId('dep1'),
+          ModuleId('dep2'),
         ],
       );
     });
@@ -358,8 +358,8 @@ void main() {
 
     test('satisfied when all dependencies installed', () {
       final spec = DependenciesMetSpecification({
-        ModuleId(value: 'dep1'),
-        ModuleId(value: 'dep2'),
+        ModuleId('dep1'),
+        ModuleId('dep2'),
       });
 
       expect(spec.isSatisfiedBy(withDepsModule), isTrue);
@@ -367,9 +367,9 @@ void main() {
 
     test('satisfied when more than required deps installed', () {
       final spec = DependenciesMetSpecification({
-        ModuleId(value: 'dep1'),
-        ModuleId(value: 'dep2'),
-        ModuleId(value: 'dep3'),
+        ModuleId('dep1'),
+        ModuleId('dep2'),
+        ModuleId('dep3'),
       });
 
       expect(spec.isSatisfiedBy(withDepsModule), isTrue);
@@ -377,7 +377,7 @@ void main() {
 
     test('not satisfied when missing dependencies', () {
       final spec = DependenciesMetSpecification({
-        ModuleId(value: 'dep1'),
+        ModuleId('dep1'),
         // dep2 missing
       });
 
@@ -402,13 +402,13 @@ void main() {
 
     setUp(() {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       module = RuntimeModule.create(
-        id: ModuleId(value: 'test-module'),
+        id: ModuleId('test-module'),
         name: 'Test Module',
         description: 'Test',
         type: ModuleType.runtime,
@@ -416,14 +416,14 @@ void main() {
         platformArtifacts: {
           PlatformIdentifier.linuxX64: artifact,
         },
-        dependencies: [ModuleId(value: 'dep1')],
+        dependencies: [ModuleId('dep1')],
       );
     });
 
     test('satisfied when platform compatible and dependencies met', () {
       final spec = CanInstallModuleSpecification(
         platform: PlatformIdentifier.linuxX64,
-        installedModules: {ModuleId(value: 'dep1')},
+        installedModules: {ModuleId('dep1')},
       );
 
       expect(spec.isSatisfiedBy(module), isTrue);
@@ -432,7 +432,7 @@ void main() {
     test('not satisfied when platform incompatible', () {
       final spec = CanInstallModuleSpecification(
         platform: PlatformIdentifier.windowsX64,
-        installedModules: {ModuleId(value: 'dep1')},
+        installedModules: {ModuleId('dep1')},
       );
 
       expect(spec.isSatisfiedBy(module), isFalse);
@@ -462,13 +462,13 @@ void main() {
 
     setUp(() {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       module = RuntimeModule.create(
-        id: ModuleId(value: 'test-module'),
+        id: ModuleId('test-module'),
         name: 'Test Module',
         description: 'Test',
         type: ModuleType.runtime,
@@ -485,7 +485,7 @@ void main() {
 
     test('satisfied when other modules installed', () {
       final spec = ModuleNotInstalledSpecification({
-        ModuleId(value: 'other-module'),
+        ModuleId('other-module'),
       });
 
       expect(spec.isSatisfiedBy(module), isTrue);
@@ -493,7 +493,7 @@ void main() {
 
     test('not satisfied when module already installed', () {
       final spec = ModuleNotInstalledSpecification({
-        ModuleId(value: 'test-module'),
+        ModuleId('test-module'),
       });
 
       expect(spec.isSatisfiedBy(module), isFalse);
@@ -509,13 +509,13 @@ void main() {
   group('ModuleHasValidArtifactsSpecification', () {
     test('satisfied when all artifacts valid', () {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       final module = RuntimeModule.create(
-        id: ModuleId(value: 'test-module'),
+        id: ModuleId('test-module'),
         name: 'Test Module',
         description: 'Test',
         type: ModuleType.runtime,
@@ -530,13 +530,13 @@ void main() {
 
     test('not satisfied when artifact invalid', () {
       final invalidArtifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
-        size: ByteSize(bytes: 0), // Invalid - zero size
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
+        size: ByteSize(0), // Invalid - zero size
       );
 
       final module = RuntimeModule(
-        id: ModuleId(value: 'test-module'),
+        id: ModuleId('test-module'),
         name: 'Test Module',
         description: 'Test',
         type: ModuleType.runtime,
@@ -559,13 +559,13 @@ void main() {
   group('ModuleIsCriticalSpecification', () {
     test('satisfied for critical (non-optional) module', () {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       final module = RuntimeModule.create(
-        id: ModuleId(value: 'critical-module'),
+        id: ModuleId('critical-module'),
         name: 'Critical Module',
         description: 'Critical',
         type: ModuleType.runtime,
@@ -581,13 +581,13 @@ void main() {
 
     test('not satisfied for optional module', () {
       final artifact = PlatformArtifact(
-        url: DownloadUrl(value: 'https://example.com/file.tar.gz'),
-        hash: SHA256Hash(value: 'a' * 64),
+        url: DownloadUrl('https://example.com/file.tar.gz'),
+        hash: SHA256Hash('a' * 64),
         size: ByteSize.fromMB(10),
       );
 
       final module = RuntimeModule.create(
-        id: ModuleId(value: 'optional-module'),
+        id: ModuleId('optional-module'),
         name: 'Optional Module',
         description: 'Optional',
         type: ModuleType.extensions,

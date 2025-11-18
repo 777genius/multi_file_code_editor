@@ -83,7 +83,7 @@ class RuntimeModuleDto {
   /// Convert to domain entity
   RuntimeModule toDomain() {
     return RuntimeModule(
-      id: ModuleId(value: id),
+      id: ModuleId(id),
       name: name,
       description: description,
       type: ModuleType.values.firstWhere(
@@ -96,7 +96,7 @@ class RuntimeModuleDto {
           value.toDomain(),
         ),
       ),
-      dependencies: dependencies.map((d) => ModuleId(value: d)).toList(),
+      dependencies: dependencies.map((d) => ModuleId(d)).toList(),
       isOptional: isOptional,
       metadata: metadata,
     );

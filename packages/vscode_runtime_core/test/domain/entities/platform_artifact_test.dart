@@ -11,8 +11,8 @@ void main() {
     late ByteSize testSize;
 
     setUp(() {
-      testUrl = DownloadUrl(value: 'https://example.com/file.zip');
-      testHash = SHA256Hash(value: 'a' * 64);
+      testUrl = DownloadUrl('https://example.com/file.zip');
+      testHash = SHA256Hash('a' * 64);
       testSize = ByteSize.fromMB(10);
     });
 
@@ -57,7 +57,7 @@ void main() {
         final artifact = PlatformArtifact(
           url: testUrl,
           hash: testHash,
-          size: ByteSize(bytes: 0),
+          size: ByteSize(0),
         );
 
         expect(artifact.isValid, isFalse);
@@ -77,7 +77,7 @@ void main() {
       });
 
       test('detects zip format from URL', () {
-        final url = DownloadUrl(value: 'https://example.com/file.zip');
+        final url = DownloadUrl('https://example.com/file.zip');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -88,7 +88,7 @@ void main() {
       });
 
       test('detects tar.gz format from URL', () {
-        final url = DownloadUrl(value: 'https://example.com/file.tar.gz');
+        final url = DownloadUrl('https://example.com/file.tar.gz');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -99,7 +99,7 @@ void main() {
       });
 
       test('detects tgz format from URL', () {
-        final url = DownloadUrl(value: 'https://example.com/file.tgz');
+        final url = DownloadUrl('https://example.com/file.tgz');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -110,7 +110,7 @@ void main() {
       });
 
       test('detects tar.xz format from URL', () {
-        final url = DownloadUrl(value: 'https://example.com/file.tar.xz');
+        final url = DownloadUrl('https://example.com/file.tar.xz');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -121,7 +121,7 @@ void main() {
       });
 
       test('detects tar.bz2 format from URL', () {
-        final url = DownloadUrl(value: 'https://example.com/file.tar.bz2');
+        final url = DownloadUrl('https://example.com/file.tar.bz2');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -132,7 +132,7 @@ void main() {
       });
 
       test('returns unknown for unrecognized extension', () {
-        final url = DownloadUrl(value: 'https://example.com/file.exe');
+        final url = DownloadUrl('https://example.com/file.exe');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -143,7 +143,7 @@ void main() {
       });
 
       test('returns unknown for no extension', () {
-        final url = DownloadUrl(value: 'https://example.com/file');
+        final url = DownloadUrl('https://example.com/file');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -154,7 +154,7 @@ void main() {
       });
 
       test('is case-insensitive', () {
-        final url = DownloadUrl(value: 'https://example.com/file.ZIP');
+        final url = DownloadUrl('https://example.com/file.ZIP');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -167,7 +167,7 @@ void main() {
 
     group('needsExtraction', () {
       test('returns true for zip files', () {
-        final url = DownloadUrl(value: 'https://example.com/file.zip');
+        final url = DownloadUrl('https://example.com/file.zip');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -178,7 +178,7 @@ void main() {
       });
 
       test('returns true for tar.gz files', () {
-        final url = DownloadUrl(value: 'https://example.com/file.tar.gz');
+        final url = DownloadUrl('https://example.com/file.tar.gz');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -189,7 +189,7 @@ void main() {
       });
 
       test('returns false for unknown format', () {
-        final url = DownloadUrl(value: 'https://example.com/file.exe');
+        final url = DownloadUrl('https://example.com/file.exe');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -200,7 +200,7 @@ void main() {
       });
 
       test('returns false for none format', () {
-        final url = DownloadUrl(value: 'https://example.com/file.exe');
+        final url = DownloadUrl('https://example.com/file.exe');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -212,7 +212,7 @@ void main() {
       });
 
       test('returns true for explicit compression format', () {
-        final url = DownloadUrl(value: 'https://example.com/file');
+        final url = DownloadUrl('https://example.com/file');
         final artifact = PlatformArtifact(
           url: url,
           hash: testHash,
@@ -241,7 +241,7 @@ void main() {
       });
 
       test('different URLs make artifacts unequal', () {
-        final url2 = DownloadUrl(value: 'https://example.com/other.zip');
+        final url2 = DownloadUrl('https://example.com/other.zip');
         final artifact1 = PlatformArtifact(
           url: testUrl,
           hash: testHash,
@@ -257,7 +257,7 @@ void main() {
       });
 
       test('different hashes make artifacts unequal', () {
-        final hash2 = SHA256Hash(value: 'b' * 64);
+        final hash2 = SHA256Hash('b' * 64);
         final artifact1 = PlatformArtifact(
           url: testUrl,
           hash: testHash,
@@ -313,7 +313,7 @@ void main() {
           hash: testHash,
           size: testSize,
         );
-        final newUrl = DownloadUrl(value: 'https://example.com/new.zip');
+        final newUrl = DownloadUrl('https://example.com/new.zip');
         final artifact2 = artifact1.copyWith(url: newUrl);
 
         expect(artifact2.url, newUrl);
@@ -327,7 +327,7 @@ void main() {
           hash: testHash,
           size: testSize,
         );
-        final newHash = SHA256Hash(value: 'b' * 64);
+        final newHash = SHA256Hash('b' * 64);
         final artifact2 = artifact1.copyWith(hash: newHash);
 
         expect(artifact2.url, testUrl);
@@ -364,8 +364,8 @@ void main() {
     group('real-world scenarios', () {
       test('creates Node.js artifact', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.gz'),
-          hash: SHA256Hash(value: 'a' * 64),
+          url: DownloadUrl('https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.gz'),
+          hash: SHA256Hash('a' * 64),
           size: ByteSize.fromMB(50),
         );
 
@@ -376,8 +376,8 @@ void main() {
 
       test('creates OpenVSCode Server artifact', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://github.com/gitpod-io/openvscode-server/releases/download/v1.85.0/openvscode-server-v1.85.0-linux-x64.tar.gz'),
-          hash: SHA256Hash(value: 'b' * 64),
+          url: DownloadUrl('https://github.com/gitpod-io/openvscode-server/releases/download/v1.85.0/openvscode-server-v1.85.0-linux-x64.tar.gz'),
+          hash: SHA256Hash('b' * 64),
           size: ByteSize.fromMB(120),
         );
 
@@ -388,8 +388,8 @@ void main() {
 
       test('creates Windows zip artifact', () {
         final artifact = PlatformArtifact(
-          url: DownloadUrl(value: 'https://example.com/runtime-windows-x64.zip'),
-          hash: SHA256Hash(value: 'c' * 64),
+          url: DownloadUrl('https://example.com/runtime-windows-x64.zip'),
+          hash: SHA256Hash('c' * 64),
           size: ByteSize.fromMB(75),
         );
 

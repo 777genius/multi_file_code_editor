@@ -27,42 +27,42 @@ void main() {
 
       test('throws on invalid length (too short)', () {
         expect(
-          () => SHA256Hash(value: 'a' * 63),
+          () => SHA256Hash('a' * 63),
           throwsA(isA<ValidationException>()),
         );
       });
 
       test('throws on invalid length (too long)', () {
         expect(
-          () => SHA256Hash(value: 'a' * 65),
+          () => SHA256Hash('a' * 65),
           throwsA(isA<ValidationException>()),
         );
       });
 
       test('throws on empty string', () {
         expect(
-          () => SHA256Hash(value: ''),
+          () => SHA256Hash(''),
           throwsA(isA<ValidationException>()),
         );
       });
 
       test('throws on non-hex characters', () {
         expect(
-          () => SHA256Hash(value: 'g' + 'a' * 63),
+          () => SHA256Hash('g' + 'a' * 63),
           throwsA(isA<ValidationException>()),
         );
       });
 
       test('throws on special characters', () {
         expect(
-          () => SHA256Hash(value: '@' + 'a' * 63),
+          () => SHA256Hash('@' + 'a' * 63),
           throwsA(isA<ValidationException>()),
         );
       });
 
       test('throws on spaces', () {
         expect(
-          () => SHA256Hash(value: 'a' * 32 + ' ' + 'a' * 31),
+          () => SHA256Hash('a' * 32 + ' ' + 'a' * 31),
           throwsA(isA<ValidationException>()),
         );
       });
@@ -82,8 +82,8 @@ void main() {
       });
 
       test('is case-insensitive', () {
-        final lowerHash = SHA256Hash(value: 'a' * 64);
-        final upperHash = SHA256Hash(value: 'A' * 64);
+        final lowerHash = SHA256Hash('a' * 64);
+        final upperHash = SHA256Hash('A' * 64);
         expect(lowerHash.matches(upperHash), isTrue);
       });
     });
@@ -127,7 +127,7 @@ void main() {
       });
 
       test('returns lowercase value', () {
-        final hash = SHA256Hash(value: 'A' * 64);
+        final hash = SHA256Hash('A' * 64);
         expect(hash.toString(), 'a' * 64);
       });
     });
@@ -147,8 +147,8 @@ void main() {
       });
 
       test('case-insensitive equality', () {
-        final lowerHash = SHA256Hash(value: 'a' * 64);
-        final upperHash = SHA256Hash(value: 'A' * 64);
+        final lowerHash = SHA256Hash('a' * 64);
+        final upperHash = SHA256Hash('A' * 64);
         expect(lowerHash, equals(upperHash));
       });
     });

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dartz/dartz.dart';
 import 'package:git_integration/src/application/use_cases/generate_ssh_key_use_case.dart';
 import 'dart:io';
 

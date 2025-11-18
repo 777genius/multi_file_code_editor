@@ -54,7 +54,27 @@ Advanced search and replace with regex support and preview.
 
 ---
 
-### 4. **Auto Save** (`plugin.auto-save`)
+### 4. **Bracket Pair Colorizer** (`plugin.bracket-colorizer`)
+
+Rainbow bracket colorizer with nesting depth analysis and error detection.
+
+**Key Features:**
+- Rainbow colors for different nesting levels
+- Supports (), {}, [], <>
+- Unlimited nesting depth
+- Error detection (unmatched, mismatched)
+- String and comment awareness
+- Rust WASM backend for performance
+
+**Location:** `app/modules/plugins/multi_editor_plugin_bracket_colorizer/`
+
+**WASM Backend:** `packages/wasm_plugins/bracket_colorizer_wasm/`
+
+[Read more →](app/modules/plugins/multi_editor_plugin_bracket_colorizer/README.md)
+
+---
+
+### 5. **Auto Save** (`plugin.auto-save`)
 
 Automatically saves files at configurable intervals.
 
@@ -62,7 +82,7 @@ Automatically saves files at configurable intervals.
 
 ---
 
-### 5. **Recent Files** (`plugin.recent-files`)
+### 6. **Recent Files** (`plugin.recent-files`)
 
 Tracks and displays recently opened files.
 
@@ -70,7 +90,7 @@ Tracks and displays recently opened files.
 
 ---
 
-### 6. **File Statistics** (`plugin.file-stats`)
+### 7. **File Statistics** (`plugin.file-stats`)
 
 Shows file metrics (lines, characters, words, size).
 
@@ -78,7 +98,7 @@ Shows file metrics (lines, characters, words, size).
 
 ---
 
-### 7. **File Icons** (`plugin.file-icons`)
+### 8. **File Icons** (`plugin.file-icons`)
 
 Displays file type icons in file tree.
 
@@ -86,7 +106,7 @@ Displays file type icons in file tree.
 
 ---
 
-### 8. **Symbol Navigator** (`plugin.symbol-navigator`)
+### 9. **Symbol Navigator** (`plugin.symbol-navigator`)
 
 Code symbol navigation powered by WASM backend.
 
@@ -267,7 +287,7 @@ void main() {
 
 ## 🚀 Future Plugin Ideas
 
-- [ ] **Bracket Pair Colorizer** (WASM with tree-sitter)
+- [x] **Bracket Pair Colorizer** (WASM with tree-sitter) - ✅ Implemented!
 - [ ] **Import Organizer** (WASM AST-based)
 - [ ] **Code Complexity Analyzer** (WASM)
 - [ ] **Duplicate Code Detector** (WASM)

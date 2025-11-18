@@ -1,0 +1,334 @@
+// Domain Services - Business logic operations
+
+use super::{
+    Bracket, BracketPair, BracketCollection, UnmatchedBracket, UnmatchedReason,
+    BracketType, BracketSide, Position, ColorLevel, ColorScheme, Language,
+};
+
+/// Service interface for bracket analysis
+pub trait BracketAnalyzer {
+    /// Analyze source code and extract bracket pairs
+    fn analyze(&self, content: &str, language: Language) -> BracketCollection;
+}
+
+/// Stack-based bracket matcher
+///
+/// This is the core algorithm for matching brackets:
+/// 1. Scan through source code
+/// 2. Push opening brackets onto stack
+/// 3. Pop matching closing brackets
+/// 4. Track depth and assign colors
+pub struct StackBasedMatcher {
+    color_scheme: ColorScheme,
+}
+
+impl StackBasedMatcher {
+    pub fn new(color_scheme: ColorScheme) -> Self {
+        Self { color_scheme }
+    }
+
+    /// Match brackets using stack algorithm
+    pub fn match_brackets(&self, content: &str, language: Language) -> BracketCollection {
+        let start_time = std::time::Instant::now();
+
+        let mut pairs = Vec::new();
+        let mut unmatched = Vec::new();
+        let mut stack: Vec<Bracket> = Vec::new();
+        let mut max_depth = 0;
+
+        // Track if we're inside a string or comment
+        let mut in_string = false;
+        let mut in_single_quote_string = false;
+        let mut in_comment = false;
+        let mut in_multiline_comment = false;
+        let mut escape_next = false;
+
+        let chars: Vec<char> = content.chars().collect();
+        let mut offset = 0u32;
+        let mut line = 0u32;
+        let mut column = 0u32;
+
+        let mut i = 0;
+        while i < chars.len() {
+            let ch = chars[i];
+
+            // Handle escape sequences
+            if escape_next {
+                escape_next = false;
+                offset += 1;
+                column += 1;
+                i += 1;
+                continue;
+            }
+
+            if ch == '\\' && (in_string || in_single_quote_string) {
+                escape_next = true;
+                offset += 1;
+                column += 1;
+                i += 1;
+                continue;
+            }
+
+            // Handle newlines
+            if ch == '\n' {
+                line += 1;
+                column = 0;
+                offset += 1;
+                in_comment = false; // Single-line comments end
+                i += 1;
+                continue;
+            }
+
+            // Handle strings
+            if ch == '"' && !in_single_quote_string && !in_comment && !in_multiline_comment {
+                in_string = !in_string;
+            } else if ch == '\'' && !in_string && !in_comment && !in_multiline_comment {
+                in_single_quote_string = !in_single_quote_string;
+            }
+
+            // Handle comments (simplified, works for C-style comments)
+            if !in_string && !in_single_quote_string {
+                // Check for // single-line comment
+                if i + 1 < chars.len() && ch == '/' && chars[i + 1] == '/' {
+                    in_comment = true;
+                }
+
+                // Check for /* multi-line comment start
+                if i + 1 < chars.len() && ch == '/' && chars[i + 1] == '*' {
+                    in_multiline_comment = true;
+                }
+
+                // Check for */ multi-line comment end
+                if i + 1 < chars.len() && ch == '*' && chars[i + 1] == '/' {
+                    in_multiline_comment = false;
+                    offset += 2;
+                    column += 2;
+                    i += 2;
+                    continue;
+                }
+            }
+
+            // Only process brackets if not in string or comment
+            if !in_string && !in_single_quote_string && !in_comment && !in_multiline_comment {
+                if let Some((bracket_type, side)) = BracketType::from_char(ch) {
+                    // Skip angle brackets in generic-supporting languages
+                    // This is a simplified check; real implementation would use AST
+                    if bracket_type == BracketType::Angle
+                        && language.uses_angle_brackets_as_generics()
+                    {
+                        // Check if this looks like a generic (simplified heuristic)
+                        let is_likely_generic = self.is_likely_generic_bracket(&chars, i);
+                        if is_likely_generic {
+                            offset += 1;
+                            column += 1;
+                            i += 1;
+                            continue;
+                        }
+                    }
+
+                    let position = Position::new(line, column, offset);
+                    let depth = stack.len();
+                    let color_level = ColorLevel::from_depth(depth, self.color_scheme.color_count());
+
+                    let bracket = Bracket::new(bracket_type, side, position, depth, color_level);
+
+                    match side {
+                        BracketSide::Opening => {
+                            // Push opening bracket onto stack
+                            stack.push(bracket);
+                            if depth > max_depth {
+                                max_depth = depth;
+                            }
+                        }
+                        BracketSide::Closing => {
+                            // Try to match with opening bracket
+                            if let Some(opening) = stack.pop() {
+                                if opening.bracket_type == bracket_type {
+                                    // Matched pair!
+                                    pairs.push(BracketPair::new(opening, bracket));
+                                } else {
+                                    // Type mismatch
+                                    unmatched.push(UnmatchedBracket {
+                                        bracket: bracket.clone(),
+                                        reason: UnmatchedReason::TypeMismatch {
+                                            expected: opening.bracket_type,
+                                            found: bracket_type,
+                                        },
+                                    });
+                                    unmatched.push(UnmatchedBracket {
+                                        bracket: opening,
+                                        reason: UnmatchedReason::TypeMismatch {
+                                            expected: bracket_type,
+                                            found: opening.bracket_type,
+                                        },
+                                    });
+                                }
+                            } else {
+                                // No matching opening bracket
+                                unmatched.push(UnmatchedBracket {
+                                    bracket,
+                                    reason: UnmatchedReason::MissingOpening,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            offset += 1;
+            column += 1;
+            i += 1;
+        }
+
+        // Any remaining opening brackets are unmatched
+        for opening in stack {
+            unmatched.push(UnmatchedBracket {
+                bracket: opening,
+                reason: UnmatchedReason::MissingClosing,
+            });
+        }
+
+        let duration = start_time.elapsed();
+
+        BracketCollection::new(pairs, unmatched, max_depth, duration.as_millis() as u64)
+    }
+
+    /// Heuristic to detect if angle bracket is likely a generic/template
+    /// This is simplified; real implementation would use AST
+    fn is_likely_generic_bracket(&self, chars: &[char], pos: usize) -> bool {
+        // Look for patterns like: Vec<T>, HashMap<K, V>, std::vector<int>
+        // Check if there's an identifier before <
+        if pos > 0 {
+            let prev_char = chars[pos - 1];
+            if prev_char.is_alphanumeric() || prev_char == '_' {
+                return true;
+            }
+        }
+
+        // Check if there's an identifier after >
+        if pos + 1 < chars.len() {
+            let next_char = chars[pos + 1];
+            if next_char.is_alphanumeric() || next_char == '_' || next_char == ',' || next_char == ' ' {
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+impl BracketAnalyzer for StackBasedMatcher {
+    fn analyze(&self, content: &str, language: Language) -> BracketCollection {
+        self.match_brackets(content, language)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_bracket_matching() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "function test() { return 42; }";
+
+        let result = matcher.analyze(content, Language::JavaScript);
+
+        assert_eq!(result.pairs.len(), 2); // () and {}
+        assert_eq!(result.unmatched.len(), 0);
+        assert!(!result.has_errors());
+    }
+
+    #[test]
+    fn test_nested_brackets() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ [ ( ) ] }";
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.pairs.len(), 3); // (), [], {}
+        assert_eq!(result.max_depth, 2); // Max nesting level
+    }
+
+    #[test]
+    fn test_unmatched_opening() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ ( }"; // Missing )
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.unmatched.len(), 1);
+        assert!(result.has_errors());
+    }
+
+    #[test]
+    fn test_unmatched_closing() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ } )"; // Extra )
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.unmatched.len(), 1);
+    }
+
+    #[test]
+    fn test_type_mismatch() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "( ]"; // Mismatched
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.unmatched.len(), 2);
+        assert!(result.has_errors());
+    }
+
+    #[test]
+    fn test_brackets_in_strings() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = r#"{ let s = "{ not a bracket }"; }"#;
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.pairs.len(), 1); // Only outer {}
+    }
+
+    #[test]
+    fn test_brackets_in_comments() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ // ( not counted\n }";
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.pairs.len(), 1); // Only outer {}
+    }
+
+    #[test]
+    fn test_color_level_assignment() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ [ ( ) ] }";
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        // Check that colors are assigned based on depth
+        let outer_pair = &result.pairs[2]; // {}
+        let middle_pair = &result.pairs[1]; // []
+        let inner_pair = &result.pairs[0]; // ()
+
+        assert_eq!(outer_pair.depth, 0);
+        assert_eq!(middle_pair.depth, 1);
+        assert_eq!(inner_pair.depth, 2);
+    }
+
+    #[test]
+    fn test_statistics() {
+        let matcher = StackBasedMatcher::new(ColorScheme::default_rainbow());
+        let content = "{ ( ) [ ] }";
+
+        let result = matcher.analyze(content, Language::Generic);
+
+        assert_eq!(result.statistics.round_pairs, 1);
+        assert_eq!(result.statistics.square_pairs, 1);
+        assert_eq!(result.statistics.curly_pairs, 1);
+        assert_eq!(result.statistics.total_pairs(), 3);
+    }
+}

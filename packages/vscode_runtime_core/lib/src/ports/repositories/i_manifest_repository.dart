@@ -13,11 +13,14 @@ abstract class IManifestRepository {
   Future<Either<DomainException, Option<RuntimeManifest>>> getCachedManifest();
 
   /// Get all available modules from manifest
-  Future<Either<DomainException, List<RuntimeModule>>> getModules();
+  /// Optionally filter by platform
+  Future<Either<DomainException, List<RuntimeModule>>> getModules([
+    PlatformIdentifier? platform,
+  ]);
 
   /// Get specific module by ID
   Future<Either<DomainException, Option<RuntimeModule>>> getModule(
-    String moduleId,
+    ModuleId moduleId,
   );
 
   /// Check for manifest updates

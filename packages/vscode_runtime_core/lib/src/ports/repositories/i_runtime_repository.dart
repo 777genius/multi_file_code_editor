@@ -18,8 +18,10 @@ abstract class IRuntimeRepository {
   );
 
   /// Load installation by ID
+  /// Requires modules to reconstruct the aggregate
   Future<Either<DomainException, Option<RuntimeInstallation>>> loadInstallation(
     InstallationId installationId,
+    List<RuntimeModule> modules,
   );
 
   /// Get all installation history
@@ -35,9 +37,10 @@ abstract class IRuntimeRepository {
   Future<Either<DomainException, String>> getModuleDirectory(ModuleId moduleId);
 
   /// Delete installation (cleanup)
-  Future<Either<DomainException, Unit>> deleteInstallation(
-    InstallationId installationId,
-  );
+  /// If installationId is null, deletes all installations
+  Future<Either<DomainException, Unit>> deleteInstallation([
+    InstallationId? installationId,
+  ]);
 
   /// Save installed version
   Future<Either<DomainException, Unit>> saveInstalledVersion(

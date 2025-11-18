@@ -44,11 +44,11 @@ abstract class _RuntimeInstallationStore with Store {
 
   /// Total modules to install
   @observable
-  int totalModules = 0;
+  int totalModuleCount = 0;
 
   /// Installed modules count
   @observable
-  int installedModules = 0;
+  int installedModuleCount = 0;
 
   /// Error message if installation failed
   @observable
@@ -86,9 +86,9 @@ abstract class _RuntimeInstallationStore with Store {
       pending: () => 'Preparing installation...',
       inProgress: () {
         if (currentModule != null) {
-          return 'Installing ${currentModule!.value}... ($installedModules/$totalModules)';
+          return 'Installing ${currentModule!.value}... ($installedModuleCount/$totalModuleCount)';
         }
-        return 'Installing... ($installedModules/$totalModules modules)';
+        return 'Installing... ($installedModuleCount/$totalModuleCount modules)';
       },
       completed: () => 'Installation completed successfully!',
       failed: () => errorMessage ?? 'Installation failed',
@@ -173,8 +173,8 @@ abstract class _RuntimeInstallationStore with Store {
     overallProgress = 0.0;
     currentModule = null;
     currentModuleProgress = 0.0;
-    totalModules = 0;
-    installedModules = 0;
+    totalModuleCount = 0;
+    installedModuleCount = 0;
     errorMessage = null;
     _cancelToken = null;
   }
@@ -188,12 +188,12 @@ abstract class _RuntimeInstallationStore with Store {
 
       // Update installed count when module completes
       if (progress >= 1.0) {
-        installedModules++;
+        installedModuleCount++;
       }
 
       // Calculate overall progress
-      if (totalModules > 0) {
-        overallProgress = (installedModules + currentModuleProgress) / totalModules;
+      if (totalModuleCount > 0) {
+        overallProgress = (installedModuleCount + currentModuleProgress) / totalModuleCount;
       }
     });
   }
@@ -219,8 +219,8 @@ abstract class _RuntimeInstallationStore with Store {
           currentInstallationId = progress.installationId;
           status = progress.status;
           overallProgress = progress.overallProgress;
-          totalModules = progress.totalModules;
-          installedModules = progress.installedModules;
+          totalModuleCount = progress.totalModules;
+          installedModuleCount = progress.installedModules;
           currentModule = progress.currentModule;
           currentModuleProgress = progress.currentModuleProgress ?? 0.0;
           errorMessage = progress.errorMessage;

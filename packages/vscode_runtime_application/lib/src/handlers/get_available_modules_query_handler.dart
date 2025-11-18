@@ -39,6 +39,7 @@ class GetAvailableModulesQueryHandler
       List<RuntimeModule> modules;
 
       if (query.platformOnly) {
+        // Get modules filtered by platform
         final modulesResult = await _manifestRepository.getModules(platform);
         modules = modulesResult.fold(
           (error) => throw NetworkException(
@@ -52,7 +53,7 @@ class GetAvailableModulesQueryHandler
           (error) => throw NetworkException(
             'Failed to load modules: ${error.message}',
           ),
-          (m) => m,
+          (m) => m.modules,
         );
       }
 

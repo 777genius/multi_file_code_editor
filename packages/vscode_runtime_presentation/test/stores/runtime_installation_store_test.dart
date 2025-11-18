@@ -286,11 +286,11 @@ void main() {
           installationId: installationId,
           status: InstallationStatus.inProgress,
           overallProgress: 0.75,
-          currentModule: some(ModuleId.openVSCodeServer),
+          currentModule: ModuleId.openVSCodeServer,
           currentModuleProgress: 0.5,
-          installedModuleCount: 1,
-          totalModuleCount: 2,
-          statusMessages: ['Installing OpenVSCode Server...'],
+          installedModules: 1,
+          totalModules: 2,
+          remainingModules: [ModuleId.baseExtensions],
         );
 
         progressHandler.mockProgress = mockProgress;

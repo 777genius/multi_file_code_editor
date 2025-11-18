@@ -5,5 +5,12 @@ import 'injection.config.dart';
 
 final getIt = GetIt.instance;
 
-@InjectableInit()
-Future<void> configureDependencies() async => getIt.init();
+/// Configure presentation layer dependencies
+///
+/// This should be called after configuring the application layer dependencies
+@InjectableInit(
+  initializerName: 'initPresentation',
+  preferRelativeImports: true,
+  asExtension: true,
+)
+Future<void> configurePresentationDependencies() async => getIt.initPresentation();

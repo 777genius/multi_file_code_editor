@@ -1,0 +1,27 @@
+name: vscode_compatibility_example
+description: Example app demonstrating VS Code runtime management
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # VS Code Compatibility Facade
+  vscode_compatibility:
+    path: ../vscode_compatibility
+
+  # State Management
+  flutter_mobx: ^2.2.0
+  mobx: ^2.3.0
+
+  # Dependency Injection
+  get_it: ^7.6.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0

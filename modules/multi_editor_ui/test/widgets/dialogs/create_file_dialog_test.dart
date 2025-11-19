@@ -31,9 +31,9 @@ void main() {
       );
 
       // Assert
-      expect(find.widgetWithText(TextFormField, 'example.dart'), findsOneWidget);
       final textField = tester.widget<TextFormField>(find.byType(TextFormField));
       expect(textField.decoration?.labelText, equals('File name'));
+      expect(textField.decoration?.hintText, equals('example.dart'));
       expect(textField.autofocus, isTrue);
     });
 

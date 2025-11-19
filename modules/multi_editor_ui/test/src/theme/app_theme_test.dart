@@ -79,14 +79,10 @@ void main() {
       });
 
       test('should export AppTypography', () {
-        // Arrange & Act
-        final typography = AppTypography.fromColorScheme(
-          ColorScheme.fromSeed(seedColor: Colors.blue),
-        );
-
-        // Assert
-        expect(typography, isNotNull);
-        expect(typography.displayLarge, isA<TextStyle>());
+        // Arrange & Act & Assert
+        expect(AppTypography.fontFamilySans, isNotNull);
+        expect(AppTypography.fontSizeM, equals(14.0));
+        expect(AppTypography.fontWeightRegular, equals(FontWeight.w400));
       });
 
       test('should export AppIconSize', () {
@@ -234,7 +230,7 @@ void main() {
               builder: (context) {
                 final editorTheme = context.editorTheme;
                 expect(editorTheme, isNotNull);
-                expect(editorTheme.backgroundColor, isA<Color>());
+                expect(editorTheme.fileTreeHoverBackground, isA<Color>());
                 return const SizedBox.shrink();
               },
             ),
@@ -256,17 +252,19 @@ void main() {
       test('should combine typography and color systems', () {
         // Arrange
         final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
-        final typography = AppTypography.fromColorScheme(colorScheme);
 
         // Act
-        final textStyle = typography.bodyMedium.copyWith(
+        final textStyle = TextStyle(
+          fontFamily: AppTypography.fontFamilySans,
+          fontSize: AppTypography.fontSizeM,
+          fontWeight: AppTypography.fontWeightRegular,
           color: colorScheme.onSurface,
         );
 
         // Assert
         expect(textStyle, isNotNull);
         expect(textStyle.color, equals(colorScheme.onSurface));
-        expect(textStyle.fontSize, isNotNull);
+        expect(textStyle.fontSize, equals(14.0));
       });
 
       test('should use interaction states with theme colors', () {
@@ -324,8 +322,8 @@ void main() {
           backgroundColor,
           textColor,
         );
-        final passesAA = Accessibility.meetsAA(backgroundColor, textColor);
-        final passesAAA = Accessibility.meetsAAA(backgroundColor, textColor);
+        final passesAA = Accessibility.meetsWcagAA(backgroundColor, textColor);
+        final passesAAA = Accessibility.meetsWcagAAA(backgroundColor, textColor);
 
         // Assert
         expect(contrast, greaterThan(1.0));
